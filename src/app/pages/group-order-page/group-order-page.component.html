@@ -1,125 +1,118 @@
-<div class="overlay" role="presentation" (click)="onOverlayClick($event)">
-  <section class="modal" role="region" aria-labelledby="group-order-title">
-    <button type="button" class="close" aria-label="Close" (click)="close()">
-      <img src="assets/svg/close.svg" alt="" width="24" height="24" />
-    </button>
+<main class="page">
+  @if (loading() && !invite()) {
+    <p class="state" role="status">Loading group pre-order…</p>
+  } @else if (loadError() === 'not-found') {
+    <section class="state state--error">
+      <h1 class="page-title">Group Pre-Order</h1>
+      <p>Group reservation not found</p>
+    </section>
+  } @else if (loadError()) {
+    <section class="state state--error">
+      <h1 class="page-title">Group Pre-Order</h1>
+      <p>Couldn’t load the group pre-order. Please try again.</p>
+      <button type="button" class="button button--primary button--large" (click)="load()">Try again</button>
+    </section>
+  } @else if (invite(); as inv) {
+    <header class="page-header">
+      <div class="title-row">
+        <h1 class="page-title">Group Pre-Order</h1>
+        <span class="badge" [class.badge--sent]="isSent()">{{ statusLabel() }}</span>
+      </div>
 
-    @if (loading() && !invite()) {
-      <h1 id="group-order-title" class="title">Group Pre-Order</h1>
-      <p class="state" role="status">Loading group pre-order…</p>
-    } @else if (loadError() === 'not-found') {
-      <h1 id="group-order-title" class="title">Group Pre-Order</h1>
-      <p class="state state--error">Group reservation not found</p>
-    } @else if (loadError()) {
-      <h1 id="group-order-title" class="title">Group Pre-Order</h1>
-      <p class="state state--error">Couldn’t load the group pre-order. Please try again.</p>
-      <button type="button" class="button button--primary button--large retry" (click)="load()">Try again</button>
-    } @else if (invite(); as inv) {
-      <header class="heading">
-        <div class="title-row">
-          <h1 id="group-order-title" class="title">Group Pre-Order</h1>
-          <span class="badge" [class.badge--sent]="isSent()">{{ statusLabel() }}</span>
-        </div>
+      <ul class="meta">
+        <li class="meta-item">
+          <img src="assets/svg/location-green.svg" alt="" width="16" height="16" />
+          <span>{{ inv.LocationAddress }}</span>
+        </li>
+        <li class="meta-item">
+          <img src="assets/svg/calendar-green.svg" alt="" width="16" height="16" />
+          <span>{{ inv.StartTime | date: 'mediumDate' }}</span>
+        </li>
+        <li class="meta-item">
+          <img src="assets/svg/clock-green.svg" alt="" width="16" height="16" />
+          <span>{{ inv.StartTime | date: 'HH:mm' }} - {{ inv.EndTime | date: 'HH:mm' }}</span>
+        </li>
+        <li class="meta-item">
+          <img src="assets/svg/people-green.svg" alt="" width="16" height="16" />
+          <span>{{ participants().length }} of {{ inv.MaxGuestCount }} guests</span>
+        </li>
+      </ul>
 
-        <ul class="meta">
-          <li class="meta-item">
-            <img src="assets/svg/location-green.svg" alt="" width="16" height="16" />
-            <span>{{ inv.LocationAddress }}</span>
-          </li>
-          <li class="meta-item">
-            <img src="assets/svg/calendar-green.svg" alt="" width="16" height="16" />
-            <span>{{ inv.StartTime | date: 'mediumDate' }}</span>
-          </li>
-          <li class="meta-item">
-            <img src="assets/svg/clock-green.svg" alt="" width="16" height="16" />
-            <span>{{ inv.StartTime | date: 'HH:mm' }} - {{ inv.EndTime | date: 'HH:mm' }}</span>
-          </li>
-          <li class="meta-item">
-            <img src="assets/svg/people-green.svg" alt="" width="16" height="16" />
-            <span>{{ participants().length }} of {{ inv.MaxGuestCount }} Guests</span>
-          </li>
-        </ul>
-      </header>
-
-      <div class="body">
-        <div class="sync">
-          @if (syncFailed()) {
-            <p class="sync-text sync-text--failed" role="status">
-              Couldn’t refresh. Showing data from {{ lastUpdated() | date: 'HH:mm:ss' }}
-            </p>
-          } @else {
-            <p class="sync-text">Updated at {{ lastUpdated() | date: 'HH:mm:ss' }}</p>
-          }
-          @if (!isSent()) {
-            <button type="button" class="sync-refresh" (click)="refresh()">Refresh</button>
-          }
-        </div>
-
-        @if (pendingCount() > 0 && !isSent()) {
-          <p class="notice" role="status">
-            <img src="assets/svg/bell-regular.svg" alt="" width="16" height="16" />
-            <span>
-              {{ pendingCount() === 1 ? '1 participant hasn’t' : pendingCount() + ' participants haven’t' }} submitted
-              their cart yet — their dishes won’t be included in the order
-            </span>
+      <div class="sync">
+        @if (syncFailed()) {
+          <p class="sync-text sync-text--failed" role="status">
+            Couldn’t refresh. Showing data from {{ lastUpdated() | date: 'HH:mm:ss' }}
           </p>
+        } @else {
+          <p class="sync-text">Updated at {{ lastUpdated() | date: 'HH:mm:ss' }}</p>
         }
+        @if (!isSent()) {
+          <button type="button" class="sync-refresh" (click)="refresh()">Refresh</button>
+        }
+      </div>
+    </header>
 
-        <ul class="participants">
-          @for (person of participants(); track person.id) {
-            <li>
-              <app-participant-card
-                [participant]="person"
-                [isMe]="person.id === ownerSessionId()"
-                [canRemove]="person.type === 'Guest' && !isSent()"
-                (removeClick)="askRemoveGuest($event)"
-              />
+    @if (pendingCount() > 0 && !isSent()) {
+      <p class="notice" role="status">
+        <img src="assets/svg/bell-regular.svg" alt="" width="16" height="16" />
+        <span>
+          {{ pendingCount() === 1 ? '1 participant hasn’t' : pendingCount() + ' participants haven’t' }} submitted their
+          cart yet — their dishes won’t be included in the order
+        </span>
+      </p>
+    }
+
+    <ul class="participants">
+      @for (person of participants(); track person.id) {
+        <li>
+          <app-participant-card
+            [participant]="person"
+            [isMe]="person.id === ownerSessionId()"
+            [canRemove]="person.type === 'Guest' && !isSent()"
+            (removeClick)="askRemoveGuest($event)"
+          />
+        </li>
+      }
+    </ul>
+
+    <section class="consolidated" aria-labelledby="consolidated-title">
+      <h2 id="consolidated-title" class="consolidated-title">Consolidated pre-order</h2>
+      @if (consolidated().items.length) {
+        <ul class="consolidated-list">
+          @for (item of consolidated().items; track item.dish.id) {
+            <li class="consolidated-item">
+              <span>{{ item.dish.name }} × {{ item.quantity }}</span>
+              <span>{{ item.dish.price * item.quantity | currency }}</span>
             </li>
           }
         </ul>
+      } @else if (!hasAnyDishes()) {
+        <p class="consolidated-empty">Participants haven’t added any dishes yet</p>
+      } @else {
+        <p class="consolidated-empty">No submitted carts yet — nothing to send to the restaurant</p>
+      }
+    </section>
 
-        <section class="consolidated" aria-labelledby="consolidated-title">
-          <h2 id="consolidated-title" class="consolidated-title">Consolidated pre-order</h2>
-          @if (consolidated().items.length) {
-            <ul class="consolidated-list">
-              @for (item of consolidated().items; track item.dish.id) {
-                <li class="consolidated-item">
-                  <span>{{ item.dish.name }} × {{ item.quantity }}</span>
-                  <span>{{ item.dish.price * item.quantity | currency }}</span>
-                </li>
-              }
-            </ul>
-          } @else if (!hasAnyDishes()) {
-            <p class="consolidated-empty">Participants haven’t added any dishes yet</p>
-          } @else {
-            <p class="consolidated-empty">No submitted carts yet — nothing to send to the restaurant</p>
-          }
-        </section>
-      </div>
+    <footer class="footer">
+      <p class="grand-total">
+        <span class="grand-total-label">Grand Total</span>
+        <span class="grand-total-value">{{ consolidated().total | currency }}</span>
+      </p>
 
-      <footer class="bottom">
-        <div class="bottom-divider"></div>
-        <p class="grand-total">
-          <span class="grand-total-label">Grand Total</span>
-          <span class="grand-total-value">{{ consolidated().total | currency }}</span>
-        </p>
-
-        @if (isSent()) {
-          <p class="sent-note">Your pre-order has been sent to the restaurant.</p>
-        } @else {
-          <button
-            type="button"
-            class="button button--primary button--extra-large button--full-width"
-            [disabled]="!canSubmit()"
-            (click)="openSubmitDialog()"
-          >
-            Submit Pre-Order
-          </button>
-        }
-      </footer>
-    }
-  </section>
-</div>
+      @if (isSent()) {
+        <p class="sent-note">Your pre-order has been sent to the restaurant.</p>
+      } @else {
+        <button
+          type="button"
+          class="button button--primary button--extra-large button--full-width"
+          [disabled]="!canSubmit()"
+          (click)="openSubmitDialog()"
+        >
+          Submit Pre-Order
+        </button>
+      }
+    </footer>
+  }
 
   @if (submitDialogOpen()) {
     <app-modal title="Send pre-order to the restaurant?" width="480px" (closed)="closeSubmitDialog()">
@@ -145,7 +138,7 @@
   }
 
   @if (guestToRemove(); as guest) {
-    <app-modal title="Remove Guest" width="520px" (closed)="cancelRemoveGuest()">
+    <app-modal title="Remove Guest" width="480px" (closed)="cancelRemoveGuest()">
       <p class="dialog-text">
         Are you sure you want to remove <strong>{{ guest.name }}</strong> and their pre-order from this reservation?
         This action cannot be undone.
@@ -153,7 +146,7 @@
       <div modal-actions class="dialog-actions">
         <button
           type="button"
-          class="link-button"
+          class="button button--tertiary button--large"
           [disabled]="removing()"
           (click)="cancelRemoveGuest()"
         >
@@ -170,3 +163,4 @@
       </div>
     </app-modal>
   }
+</main>

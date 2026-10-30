@@ -35,16 +35,6 @@ export const routes: Routes = [
     component: ReservationDashboardComponent,
     canActivate: [AuthGuard],
     data: { authorized: true },
-    children: [
-      {
-        // Групове пре-замовлення відкривається модалкою поверх списку бронювань
-        path: ':reservationId/group-order',
-        loadComponent: () =>
-          import('./pages/group-order-page/group-order-page.component').then(
-            (m) => m.GroupOrderPageComponent
-          ),
-      },
-    ],
   },
   {
     path: 'waiter-reservations',
@@ -104,6 +94,13 @@ export const routes: Routes = [
           import('./pages/guest-pre-order-expired-page/guest-pre-order-expired-page.component').then(
             (m) => m.GuestPreOrderExpiredPageComponent
           ),
+      },
+      {
+        path: 'reservations/:reservationId/group-order',
+        canActivate: [AuthGuard],
+        data: { authorized: true },
+        loadComponent: () =>
+          import('./pages/group-order-page/group-order-page.component').then((m) => m.GroupOrderPageComponent),
       },
       {
         path: 'join/:token',

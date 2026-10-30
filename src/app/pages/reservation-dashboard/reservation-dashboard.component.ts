@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   catchError,
   finalize,
@@ -55,8 +55,7 @@ interface ReservationStatusView {
   standalone: true,
   imports: [
     HeaderComponent,
-    RouterLink,
-    RouterOutlet,
+    RouterLink,
     CardReservationComponent,
     MakeReservationComponent,
     ReservationConfirmedComponent,
@@ -116,7 +115,7 @@ export class ReservationDashboardComponent implements OnInit {
     },
     [ReservationStatusCustomer.Finished]: {
       class: 'finished',
-      label: 'Completed',
+      label: 'Finished',
     },
   };
 

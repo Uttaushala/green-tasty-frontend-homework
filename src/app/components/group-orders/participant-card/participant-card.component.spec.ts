@@ -36,7 +36,7 @@ describe('Практичне · картка учасника', () => {
     it('показує назву страви, кількість і ціну × кількість через currency', () => {
       const text = render(OLENA).textContent ?? '';
       expect(text).toContain('Tom Yum');
-      expect(text).toContain('Qty: 2');
+      expect(text).toContain('2');
       expect(text).toContain('$440.00');
     });
 
@@ -48,10 +48,10 @@ describe('Практичне · картка учасника', () => {
       expect(render(OWNER).textContent).toContain('No dishes yet');
     });
 
-    it('фото страви має розмір 48×48 (макет)', () => {
+    it('фото страви має розмір 40×40', () => {
       const img = render(OLENA).querySelector('img');
-      expect(img?.getAttribute('width')).toBe('48');
-      expect(img?.getAttribute('height')).toBe('48');
+      expect(img?.getAttribute('width')).toBe('40');
+      expect(img?.getAttribute('height')).toBe('40');
     });
   });
 

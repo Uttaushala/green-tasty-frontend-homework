@@ -1,7 +1,4 @@
-<li class="card" [class.card--with-status]="role() === Roles.CUSTOMER">
-  @if (role() === Roles.CUSTOMER) {
-    <div [class]="'status-strip ' + statusView().class" role="status">{{ statusView().label }}</div>
-  }
+<li class="card">
   <div class="details-wrapper">
     <div class="details-line with-table">
       <div class="details">
@@ -28,7 +25,14 @@
         </div>
       }
 
-</div>
+      @if (role() === Roles.CUSTOMER) {
+        <span
+          [class]="'status-badge ' + statusView().class"
+        >
+          {{ statusView().label }}
+        </span>
+      }
+    </div>
 
     <div class="details-line">
       <span class="details">

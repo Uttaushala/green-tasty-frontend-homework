@@ -30,16 +30,6 @@ describe('CardReservationComponent', () => {
     fixture.detectChanges();
   });
 
-  it('shows the status label in the coloured header strip for a customer', () => {
-    fixture.componentRef.setInput('statusEnum', { [ReservationStatusCustomer.Reserved]: { class: 'reserved', label: 'Reserved' } });
-    fixture.detectChanges();
-
-    const strip = (fixture.nativeElement as HTMLElement).querySelector('.status-strip');
-
-    expect(strip?.textContent?.trim()).toBe('Reserved');
-    expect(strip?.classList).toContain('reserved');
-  });
-
   it('renders the location address and guest count', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
