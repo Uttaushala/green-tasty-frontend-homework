@@ -1,0 +1,219 @@
+@use 'app/shared/styles/abstracts/colors' as color;
+
+:host {
+  display: block;
+  min-height: 100%;
+  background: color.$neutral-100;
+}
+
+.page {
+  box-sizing: border-box;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+
+.page-header {
+  padding-bottom: 16px;
+  border-bottom: 1px solid color.$green-150;
+}
+
+.page-title {
+  font-size: 32px;
+  line-height: 40px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.participants {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px solid color.$green-150;
+}
+
+.grand-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.grand-total-label {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+}
+
+.grand-total-value {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: color.$green-600;
+}
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.badge {
+  padding: 2px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  color: color.$neutral-700;
+  background: color.$neutral-200;
+  border-radius: 12px;
+
+  &--sent {
+    color: color.$orange-600;
+    background: color.$orange-100;
+  }
+}
+
+.sync {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin-top: 12px;
+}
+
+.sync-text {
+  font-size: 12px;
+  line-height: 18px;
+  color: color.$neutral-600;
+
+  &--failed {
+    color: color.$red-400;
+  }
+}
+
+.sync-refresh {
+  padding: 0 0 1px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  border-bottom: 1px solid color.$neutral-900;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid color.$orange-400;
+    outline-offset: 2px;
+  }
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: color.$orange-30;
+  border: 1px solid color.$orange-100;
+  border-radius: 8px;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 48px 0;
+
+  &--error p {
+    color: color.$red-400;
+  }
+}
+
+.consolidated {
+  margin-top: 24px;
+  padding: 16px;
+  background: color.$neutral-0;
+  border-radius: 12px;
+}
+
+.consolidated-title {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+}
+
+.consolidated-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consolidated-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.consolidated-empty {
+  margin-top: 8px;
+  color: color.$neutral-600;
+}
+
+.button--disabled-look,
+.footer .button:disabled {
+  color: color.$neutral-0;
+  background: color.$neutral-400;
+  border-color: color.$neutral-400;
+}
+
+.sent-note {
+  padding: 12px 16px;
+  color: color.$neutral-0;
+  text-align: center;
+  background: color.$neutral-400;
+  border-radius: 8px;
+}
+
+.dialog-text {
+  line-height: 24px;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.danger {
+  color: color.$red-400;
+  border-color: color.$red-400;
+}
