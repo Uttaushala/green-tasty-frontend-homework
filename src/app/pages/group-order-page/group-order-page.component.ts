@@ -2,7 +2,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, Subject, catchError, exhaustMap, filter, forkJoin, merge, of, switchMap, timer } from 'rxjs';
 import { ParticipantCardComponent } from '@app/components/group-orders/participant-card/participant-card.component';
 import { GroupReservationStatus } from '@app/models/group-orders/group-status.model';
@@ -28,9 +28,11 @@ const ALL_GUESTS = 'all';
   templateUrl: './group-order-page.component.html',
   styleUrl: './group-order-page.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
+  host: { '(click)': 'onBackdropClick($event)', '(document:keydown.escape)': 'onEscape()' },
 })
 export class GroupOrderPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly groupOrdersService = inject(GroupOrdersService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -58,6 +60,11 @@ export class GroupOrderPageComponent {
   readonly groupId = computed(() => this.invite()?.GroupReservationId ?? '');
   readonly isSent = computed(() => this.status() === 'Submitted');
 
+  // The owner's own cart goes first, as in the design; guests keep the server order.
+  readonly orderedParticipants = computed(() => {
+    const everyone = this.participants();
+    return [...everyone.filter((person) => person.type === 'Owner'), ...everyone.filter((person) => person.type !== 'Owner')];
+  });
   /** В замовлення ресторану йдуть лише підтверджені кошики, однакові страви об'єднані. */
   readonly consolidated = computed(() => consolidatePreOrder(this.participants()));
   readonly pendingCount = computed(() => this.participants().filter((person) => !person.isSubmitted).length);
@@ -120,6 +127,24 @@ export class GroupOrderPageComponent {
           this.loading.set(false);
         },
       });
+  }
+
+  /** Closes the window and returns to the reservations list underneath it. */
+  close(): void {
+    void this.router.navigate(['/reservations']);
+  }
+
+  onBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.close();
+    }
+  }
+
+  onEscape(): void {
+    // Escape belongs to an open confirmation dialog first.
+    if (!this.submitDialogOpen() && !this.guestToRemove()) {
+      this.close();
+    }
   }
 
   /** «Refresh»: синхронізуватись зараз, не чекаючи таймера. */

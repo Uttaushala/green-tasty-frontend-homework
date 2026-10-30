@@ -1,4 +1,8 @@
 <main class="page">
+  <button type="button" class="close" aria-label="Close" (click)="close()">
+    <img src="assets/svg/close.svg" alt="" width="24" height="24" />
+  </button>
+
   @if (loading() && !invite()) {
     <p class="state" role="status">Loading group pre-order…</p>
   } @else if (loadError() === 'not-found') {
@@ -19,6 +23,7 @@
         <span class="badge" [class.badge--sent]="isSent()">{{ statusLabel() }}</span>
       </div>
 
+      <div class="details">
       <ul class="meta">
         <li class="meta-item">
           <img src="assets/svg/location-green.svg" alt="" width="16" height="16" />
@@ -50,11 +55,14 @@
           <button type="button" class="sync-refresh" (click)="refresh()">Refresh</button>
         }
       </div>
+      </div>
     </header>
+
+    <div class="body">
 
     @if (pendingCount() > 0 && !isSent()) {
       <p class="notice" role="status">
-        <img src="assets/svg/bell-regular.svg" alt="" width="16" height="16" />
+        <img src="assets/svg/bell-regular.svg" alt="" width="20" height="20" />
         <span>
           {{ pendingCount() === 1 ? '1 participant hasn’t' : pendingCount() + ' participants haven’t' }} submitted their
           cart yet — their dishes won’t be included in the order
@@ -73,7 +81,7 @@
     }
 
     <ul class="participants">
-      @for (person of participants(); track person.id) {
+      @for (person of orderedParticipants(); track person.id) {
         <li>
           <app-participant-card
             [participant]="person"
@@ -105,6 +113,7 @@
         <p class="consolidated-empty">No submitted carts yet — nothing to send to the restaurant</p>
       }
     </section>
+    </div>
 
     <footer class="footer">
       <p class="grand-total">
@@ -113,7 +122,7 @@
       </p>
 
       @if (isSent()) {
-        <p class="sent-note">Your pre-order has been sent to the restaurant.</p>
+        <p class="sent-note">Your pre-order has been sent to the restaurant</p>
       } @else {
         <button
           type="button"

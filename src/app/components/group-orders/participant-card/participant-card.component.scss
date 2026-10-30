@@ -16,14 +16,14 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .title {
   margin-right: auto;
   font-size: 18px;
   font-weight: 500;
-  line-height: 28px;
+  line-height: 32px;
 }
 
 .chip {
@@ -102,8 +102,8 @@
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px;
-  padding: 12px 0;
+  gap: 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid color.$neutral-100;
 
   @media (max-width: 480px) {
@@ -131,19 +131,26 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 500;
-    color: color.$green-600;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: color.$neutral-600;
     background: color.$green-100;
   }
 }
 
 .name {
   min-width: 0;
+  font-size: 14px;
   font-weight: 500;
+  line-height: 24px;
+  color: color.$neutral-900;
   overflow-wrap: anywhere;
 }
 
 .qty {
+  font-size: 12px;
+  line-height: 16px;
   color: color.$neutral-600;
 }
 

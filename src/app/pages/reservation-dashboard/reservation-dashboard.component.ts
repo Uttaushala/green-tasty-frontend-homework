@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import {
   catchError,
   finalize,
@@ -56,6 +56,7 @@ interface ReservationStatusView {
   imports: [
     HeaderComponent,
     RouterLink,
+    RouterOutlet,
     CardReservationComponent,
     MakeReservationComponent,
     ReservationConfirmedComponent,

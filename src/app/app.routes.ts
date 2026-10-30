@@ -35,6 +35,14 @@ export const routes: Routes = [
     component: ReservationDashboardComponent,
     canActivate: [AuthGuard],
     data: { authorized: true },
+    children: [
+      {
+        // Group Pre-Order opens as a window over the reservations list.
+        path: ':reservationId/group-order',
+        loadComponent: () =>
+          import('./pages/group-order-page/group-order-page.component').then((m) => m.GroupOrderPageComponent),
+      },
+    ],
   },
   {
     path: 'waiter-reservations',
@@ -94,13 +102,6 @@ export const routes: Routes = [
           import('./pages/guest-pre-order-expired-page/guest-pre-order-expired-page.component').then(
             (m) => m.GuestPreOrderExpiredPageComponent
           ),
-      },
-      {
-        path: 'reservations/:reservationId/group-order',
-        canActivate: [AuthGuard],
-        data: { authorized: true },
-        loadComponent: () =>
-          import('./pages/group-order-page/group-order-page.component').then((m) => m.GroupOrderPageComponent),
       },
       {
         path: 'join/:token',
