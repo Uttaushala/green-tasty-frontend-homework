@@ -29,6 +29,13 @@
     </button>
 </div>
 
+@if (store.hasReminder()) {
+<div class="reminder-banner" role="status">
+    <span>The reservation owner is waiting for your pre-order. Please choose your dishes.</span>
+    <button type="button" (click)="store.dismissReminder()">Got it</button>
+</div>
+}
+
 <div class="menu-container">
     <div class="page-navigation">
         <a routerLink="/main">Main page</a>
@@ -100,4 +107,4 @@
     (goToMenu)="closeCart()" (inc)="store.inc($event)" (dec)="store.dec($event)" (remove)="store.remove($event)"
     (submitted)="store.submitPreorder()" />
 }
-}
+}

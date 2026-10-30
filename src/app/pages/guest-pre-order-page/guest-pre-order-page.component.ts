@@ -1,8 +1,8 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { interval, map } from 'rxjs';
 
 import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
 import { GuestMenuDish } from '@app/services/guest-sessions/guest-sessions.service';
@@ -30,6 +30,8 @@ import { GuestPreorderSubmittedComponent } from './ui/guest-preorder-submitted/g
     ],
 })
 export class GuestPreOrderPageComponent {
+    private static readonly REMINDER_POLL_MS = 20_000;
+
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly toast = inject(ToastService);
@@ -73,6 +75,16 @@ export class GuestPreOrderPageComponent {
             const t = this.token();
             if (t) this.store.initContext(t);
         });
+
+        // Ask for the owner's reminder as soon as the guest session exists, then keep polling.
+        effect(() => {
+            if (this.store.guestSessionId() && this.store.guestSessionToken()) {
+                untracked(() => void this.store.refreshReminder());
+            }
+        });
+        interval(GuestPreOrderPageComponent.REMINDER_POLL_MS)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => void this.store.refreshReminder());
 
         // Redirect only for an invite that the backend confirms is invalid or expired.
         effect(() => {
@@ -142,4 +154,4 @@ export class GuestPreOrderPageComponent {
     noop(): void {
         // Guest name modal is mandatory; ignore close attempts (Esc/X)
     }
-}
+}

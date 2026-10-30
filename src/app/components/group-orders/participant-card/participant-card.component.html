@@ -8,6 +8,18 @@
       <span class="chip chip--pending">Still choosing</span>
     }
 
+    @if (canRemind()) {
+      <button
+        type="button"
+        class="remind"
+        [disabled]="reminding()"
+        [attr.aria-label]="'Remind ' + participant().name + ' to choose dishes'"
+        (click)="remindClick.emit(participant())"
+      >
+        {{ reminding() ? 'Sending…' : 'Remind' }}
+      </button>
+    }
+
     @if (canRemove()) {
       <button
         type="button"

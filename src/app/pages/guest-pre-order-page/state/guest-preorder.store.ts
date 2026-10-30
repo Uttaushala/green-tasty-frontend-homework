@@ -57,6 +57,19 @@ export class GuestPreorderStore {
         Object.values(this.menuByCategory()).some(dishes => dishes.length > 0)
     );
 
+    readonly reminderAt = signal<string | null>(null);
+    private readonly dismissedReminderAt = signal<string | null>(null);
+    private reminderRequestInFlight = false;
+
+    // Shown while the owner's latest reminder is newer than the one the guest already dismissed.
+    readonly hasReminder = computed(() => {
+        if (this.status() !== 'active') return false;
+        const reminder = this.reminderAt();
+        if (!reminder) return false;
+        const dismissed = this.dismissedReminderAt();
+        return !dismissed || Date.parse(reminder) > Date.parse(dismissed);
+    });
+
     readonly total = computed(() =>
         this.cartItems().reduce((sum, i) => sum + i.price * i.qty, 0)
     );
@@ -96,6 +109,9 @@ export class GuestPreorderStore {
         if (this.guestSessionId() && this.guestSessionToken()) {
             void this.loadMenu();
         }
+
+        const dismissedReminder = localStorage.getItem(this.key(id, 'reminderDismissedAt'));
+        if (dismissedReminder) this.dismissedReminderAt.set(dismissedReminder);
 
         if (name) this.guestName.set(name);
 
@@ -223,6 +239,31 @@ export class GuestPreorderStore {
         }
     }
 
+    async refreshReminder(): Promise<void> {
+        const sessionId = this.guestSessionId();
+        const token = this.guestSessionToken();
+        if (!sessionId || !token || this.status() !== 'active' || this.reminderRequestInFlight) return;
+
+        this.reminderRequestInFlight = true;
+        try {
+            const state = await firstValueFrom(this.guestSessionsService.getSessionState(sessionId, token));
+            this.reminderAt.set(state.reminderAt ?? null);
+        } catch {
+            // Polling is best-effort: the next tick tries again.
+        } finally {
+            this.reminderRequestInFlight = false;
+        }
+    }
+
+    dismissReminder(): void {
+        const reminder = this.reminderAt();
+        if (!reminder) return;
+
+        this.dismissedReminderAt.set(reminder);
+        const ctx = this.contextId();
+        if (ctx) localStorage.setItem(this.key(ctx, 'reminderDismissedAt'), reminder);
+    }
+
     setGuestName(name: string) {
         this.guestName.set(name.trim());
     }
@@ -309,6 +350,7 @@ export class GuestPreorderStore {
         this.menuError.set(null);
         this.menuLoading.set(true);
         this.cartItems.set([]);
+        this.reminderAt.set(null);
         this.status.set('active');
         this.joinLoading.set(true);
 
@@ -363,14 +405,15 @@ export class GuestPreorderStore {
         localStorage.removeItem(this.key(ctx, 'guestName'));
         localStorage.removeItem(this.key(ctx, 'cart'));
         localStorage.removeItem(this.key(ctx, 'status'));
+        localStorage.removeItem(this.key(ctx, 'reminderDismissedAt'));
         // cleanup legacy
     }
 
     private key(
         ctx: string,
-        part: 'guestName' | 'cart' | 'status' | 'guestSessionId' | 'guestSessionToken'
+        part: 'guestName' | 'cart' | 'status' | 'guestSessionId' | 'guestSessionToken' | 'reminderDismissedAt'
     ) {
         return `guestPreorder:${ctx}:${part}`;
     }
 
-}
+}

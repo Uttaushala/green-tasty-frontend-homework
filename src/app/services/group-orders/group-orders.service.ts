@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, switchMap } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '@app/auth/skip-error-toast.context';
 import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
+import { RemindGuestsRequest, RemindGuestsResponse } from '@app/models/group-orders/remind-guests.model';
 import { GroupStatusResponse } from '@app/models/group-orders/group-status.model';
 import { OwnerSessionResponse } from '@app/models/group-orders/owner-session.model';
 import { SubmitGroupPreOrderRequest, SubmittedDish } from '@app/models/group-orders/submit-group-pre-order.model';
@@ -69,6 +70,15 @@ export class GroupOrdersService {
   removeSession$(groupReservationId: string, guestSessionId: string): Observable<GroupSessionsResponse> {
     return this.http.delete<GroupSessionsResponse>(
       `${this.groupUrl(groupReservationId)}/sessions/${encodeURIComponent(guestSessionId)}`,
+    );
+  }
+
+  /** Owner нагадує гостям, які ще не підтвердили кошик: одному (guestSessionId) або всім одразу. */
+  remind$(groupReservationId: string, guestSessionId?: string): Observable<RemindGuestsResponse> {
+    const body: RemindGuestsRequest = guestSessionId ? { guestSessionId } : {};
+    return this.http.post<RemindGuestsResponse>(
+      `${this.baseUrl}/group-reservations/${encodeURIComponent(groupReservationId)}/reminders`,
+      body,
     );
   }
 

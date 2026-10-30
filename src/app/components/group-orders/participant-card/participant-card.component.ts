@@ -16,7 +16,13 @@ export class ParticipantCardComponent {
   /** Показувати посилання «Remove Guest» (лише для гостей і лише поки група Open). */
   readonly canRemove = input(false);
 
+  /** Показувати «Remind» — лише для гостя, який ще обирає страви, поки група Open. */
+  readonly canRemind = input(false);
+  /** Нагадування цьому гостю щойно відправляється. */
+  readonly reminding = input(false);
+
   readonly removeClick = output<Participant>();
+  readonly remindClick = output<Participant>();
 
   readonly title = computed(() => {
     const person = this.participant();

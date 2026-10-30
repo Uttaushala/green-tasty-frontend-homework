@@ -66,6 +66,32 @@
   }
 }
 
+.remind {
+  padding: 2px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: color.$green-800;
+  background: none;
+  border: 1px solid color.$green-800;
+  border-radius: 12px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: color.$green-100;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  &:focus-visible {
+    outline: 2px solid color.$orange-400;
+    outline-offset: 2px;
+  }
+}
+
 .items {
   margin: 0;
   padding: 0;

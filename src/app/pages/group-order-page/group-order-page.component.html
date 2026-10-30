@@ -59,6 +59,16 @@
           {{ pendingCount() === 1 ? '1 participant hasn’t' : pendingCount() + ' participants haven’t' }} submitted their
           cart yet — their dishes won’t be included in the order
         </span>
+        @if (canRemind() && remindableGuests().length > 0) {
+          <button
+            type="button"
+            class="notice-action"
+            [disabled]="remindingTarget() !== null"
+            (click)="remind()"
+          >
+            {{ allReminding() ? 'Sending…' : 'Remind all' }}
+          </button>
+        }
       </p>
     }
 
@@ -69,7 +79,10 @@
             [participant]="person"
             [isMe]="person.id === ownerSessionId()"
             [canRemove]="person.type === 'Guest' && !isSent()"
+            [canRemind]="canRemind() && person.type === 'Guest' && !person.isSubmitted"
+            [reminding]="remindingTarget() === person.id || allReminding()"
             (removeClick)="askRemoveGuest($event)"
+            (remindClick)="remind($event)"
           />
         </li>
       }

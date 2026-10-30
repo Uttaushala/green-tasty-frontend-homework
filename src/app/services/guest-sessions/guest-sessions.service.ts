@@ -1,5 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpHeaders } from '@angular/common/http';
+import { SKIP_ERROR_TOAST } from '@app/auth/skip-error-toast.context';
+import { GuestSessionStateResponse } from '@app/models/guest-sessions/guest-session-state.model';
 import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
 
 export interface CreateGuestSessionRequest {
@@ -43,6 +45,17 @@ export class GuestSessionsService {
         return this.http.post<CreateGuestSessionResponse>(`${this.baseUrl}/guest/sessions`, body);
     }
 
+    // Background polling: errors must not pop a toast every few seconds.
+    getSessionState(guestSessionId: string, sessionToken: string) {
+        return this.http.get<GuestSessionStateResponse>(
+            `${this.baseUrl}/guest/sessions/${guestSessionId}`,
+            {
+                headers: this.authHeaders(sessionToken),
+                context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+            }
+        );
+    }
+
     getMenu(guestSessionId: string, sessionToken: string) {
         return this.http.get<GuestMenuResponse>(
             `${this.baseUrl}/guest/sessions/${guestSessionId}/menu`,
@@ -77,4 +90,4 @@ export class GuestSessionsService {
     private authHeaders(token: string) {
         return new HttpHeaders({ Authorization: `Bearer ${token}` });
     }
-}
+}

@@ -23,6 +23,43 @@
     color: color.$neutral-0;
 }
 
+/* Owner reminder banner under the strip */
+.reminder-banner {
+    position: sticky;
+    top: 44px;
+    z-index: 29;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+
+    padding: 10px 16px;
+
+    font-size: 14px;
+    line-height: 20px;
+    color: color.$neutral-900;
+    background: color.$orange-30;
+    border-bottom: 1px solid color.$orange-100;
+
+    button {
+        flex-shrink: 0;
+        padding: 0 0 2px;
+        font: inherit;
+        font-weight: 500;
+        color: color.$neutral-900;
+        background: none;
+        border: none;
+        border-bottom: 1px solid color.$neutral-900;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid color.$orange-400;
+            outline-offset: 2px;
+        }
+    }
+}
+
 /* Centered text with ellipsis */
 .strip-text {
     flex: 1;
@@ -269,4 +306,4 @@
             opacity: 0.65;
         }
     }
-}
+}

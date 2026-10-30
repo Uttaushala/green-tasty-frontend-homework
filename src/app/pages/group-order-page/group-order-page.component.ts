@@ -7,6 +7,7 @@ import { EMPTY, Subject, catchError, exhaustMap, filter, forkJoin, merge, of, sw
 import { ParticipantCardComponent } from '@app/components/group-orders/participant-card/participant-card.component';
 import { GroupReservationStatus } from '@app/models/group-orders/group-status.model';
 import { Participant } from '@app/models/group-orders/participant.model';
+import { RemindGuestsResponse } from '@app/models/group-orders/remind-guests.model';
 import { GuestInvite } from '@app/models/reservations/guest-invite.model';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
@@ -17,6 +18,9 @@ import { consolidatePreOrder } from '@app/shared/helpers/consolidate-pre-order';
 export const SYNC_INTERVAL_MS = 15_000;
 
 type LoadError = 'not-found' | 'failed';
+
+/** Значення `remindingTarget`, коли нагадування йде всім гостям одразу. */
+const ALL_GUESTS = 'all';
 
 @Component({
   selector: 'app-group-order-page',
@@ -48,6 +52,8 @@ export class GroupOrderPageComponent {
   readonly submitting = signal(false);
   readonly guestToRemove = signal<Participant | null>(null);
   readonly removing = signal(false);
+  /** id гостя (або ALL_GUESTS), якому зараз відправляється нагадування. */
+  readonly remindingTarget = signal<string | null>(null);
 
   readonly groupId = computed(() => this.invite()?.GroupReservationId ?? '');
   readonly isSent = computed(() => this.status() === 'Submitted');
@@ -55,6 +61,12 @@ export class GroupOrderPageComponent {
   /** В замовлення ресторану йдуть лише підтверджені кошики, однакові страви об'єднані. */
   readonly consolidated = computed(() => consolidatePreOrder(this.participants()));
   readonly pendingCount = computed(() => this.participants().filter((person) => !person.isSubmitted).length);
+  /** Гості (не Owner), які ще не підтвердили кошик — саме їм можна нагадати. */
+  readonly remindableGuests = computed(() =>
+    this.participants().filter((person) => person.type === 'Guest' && !person.isSubmitted),
+  );
+  readonly canRemind = computed(() => !this.isSent() && this.status() === 'Open');
+  readonly allReminding = computed(() => this.remindingTarget() === ALL_GUESTS);
   readonly hasAnyDishes = computed(() => this.participants().some((person) => person.items.length > 0));
   readonly canSubmit = computed(
     () => !this.isSent() && !this.submitting() && this.consolidated().items.length > 0,
@@ -149,6 +161,42 @@ export class GroupOrderPageComponent {
           this.submitDialogOpen.set(false);
         },
       });
+  }
+
+  /** «Remind» біля гостя (передано guest) або «Remind all» (без аргументу). */
+  remind(guest?: Participant): void {
+    if (this.remindingTarget() !== null || !this.canRemind()) {
+      return;
+    }
+    this.remindingTarget.set(guest?.id ?? ALL_GUESTS);
+
+    this.groupOrdersService
+      .remind$(this.groupId(), guest?.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.remindingTarget.set(null);
+          this.showReminderResult(response);
+        },
+        // toast з текстом помилки вже показав tokenInterceptor
+        error: () => this.remindingTarget.set(null),
+      });
+  }
+
+  private showReminderResult(response: RemindGuestsResponse): void {
+    const { reminded, skipped } = response;
+    if (reminded.length > 0) {
+      this.toastService.success(
+        reminded.length === 1 ? `Reminder sent to ${reminded[0].guestName}` : `Reminder sent to ${reminded.length} guests`,
+      );
+    }
+
+    const tooSoon = skipped.filter((item) => item.reason === 'too_soon').map((item) => item.guestName);
+    if (tooSoon.length > 0) {
+      this.toastService.info(`${tooSoon.join(', ')} ${tooSoon.length === 1 ? 'was' : 'were'} reminded less than 2 minutes ago`);
+    } else if (reminded.length === 0) {
+      this.toastService.info('Everyone has already submitted their cart');
+    }
   }
 
   askRemoveGuest(guest: Participant): void {
