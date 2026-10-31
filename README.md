@@ -1,59 +1,70 @@
-# RestaurantFrontendApp
+# Green & Tasty — restaurant frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
+Angular single-page app for booking tables, reservations and pre-orders. Three roles: **client**, **waiter**, **admin**.
+Standalone components, signals, SCSS, Karma + Jasmine. Deployed to S3 + CloudFront.
 
-## Development server
+Live: https://d1qn764peiycxo.cloudfront.net
 
-To start a local development server, run:
+## Owner flow (group pre-order)
 
-```bash
-ng serve
-```
+The reservation owner can:
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- book a table and share an invite link with guests;
+- follow every guest's cart on the **Group Pre-Order** page (Submitted / Still choosing), refreshed automatically;
+- **remind guests who haven't chosen dishes yet** — one guest or everyone at once (own feature);
+- remove a guest, review the consolidated order and send it to the restaurant;
+- view-only mode when less than 30 minutes remain before the reservation: no changes, no reminders, no submit
+  (the backend enforces the same 30-minute cutoff).
 
-## Code scaffolding
+UI follows the Figma mockups. Deviations required by the organizers: no −/+ and trash controls next to dishes on the
+group page, no "Edit my Pre-Order", yellow plate instead of the "Maria has filled…" notification.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Quick start
 
 ```bash
-ng build
+npm ci                 # not `npm install` — the lockfile is authoritative
+npm start              # http://localhost:4200 (development config, dev API URL baked in)
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+Production build (`BACKEND_URL` is mandatory, the build aborts without it):
 
 ```bash
-ng test
+BACKEND_URL=https://<api-id>.execute-api.<region>.amazonaws.com/develop npm run build
 ```
 
-## Running end-to-end tests
+`prebuild` generates `src/environments/environment.production.ts` from `BACKEND_URL` (never committed);
+`postbuild` fails if any `BACKEND_URL_PLACEHOLDER` is left in `dist/`.
 
-For end-to-end (e2e) testing, run:
+Deploy:
 
 ```bash
-ng e2e
+aws s3 sync dist/restaurant-frontend-app/browser s3://<bucket> --delete
+aws cloudfront create-invalidation --distribution-id <id> --paths "/*"
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Quality gates
 
-## Additional Resources
+```bash
+npx tsc -p tsconfig.app.json  --noEmit
+npx tsc -p tsconfig.spec.json --noEmit
+BACKEND_URL=https://example.com npm run build     # ends with "Bundle check passed"
+npm test -- --watch=false
+```
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Current state: 389 tests passing, initial bundle 664.79 kB (error budget 1 MB).
+Project conventions and known debt are described in [`CLAUDE.md`](./CLAUDE.md).
+
+## Known limitations (backend-dependent)
+
+These parts of the mockups are **not implemented** because the deployed API does not expose the data they need:
+
+| Mockup state | Why it is missing |
+|---|---|
+| Red "unconfirmed items… will be canceled in 15 minutes" strip (T-45) | The backend has no T-45 auto-cancel; it only enforces a 30-minute modification cutoff. Showing the text would promise something that never happens. |
+| Per-dish **Confirmed / Rejected** badges | Order responses (`GET /orders`, group sessions) return only `dish` and `quantity`; the item `state` exists in storage but is not returned. |
+| "New pre-order added" modal | Depends on the per-item state above. |
+
+Unblocking them needs a backend change (return `state` in `OrderItemResponse`, add the T-45 job) and a `syndicate deploy`
+by the backend owner; the frontend will then only need the rendering.
+
+Other notes: the backend cannot be run locally, so the frontend always works against a deployed API Gateway URL.
