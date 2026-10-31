@@ -46,14 +46,41 @@ export class CartComponent implements OnInit {
   readonly cancelOrderId = signal<string | null>(null);
   readonly submitOrderId = signal<string | null>(null);
 
+  /**
+   * The cart is opened from the menu of one reservation (?reservationId=…):
+   * then only that reservation's pre-order is shown, like in the design.
+   */
+  readonly reservationFilter = signal<string | null>(
+    new URLSearchParams(window.location.search).get('reservationId'),
+  );
+
+  private readonly scopedOrders = computed(() => {
+    const reservationId = this.reservationFilter();
+
+    return reservationId
+      ? this.orders().filter(
+          (order) => order.reservationId === reservationId,
+        )
+      : this.orders();
+  });
+
   readonly submittedOrders = computed(() =>
-    this.orders().filter(
+    this.scopedOrders().filter(
       (order) => order.status === 1 || order.status === 3,
     ),
   );
 
+  /** Drafts without dishes are not shown: there is nothing to submit in them. */
   readonly unsubmittedOrders = computed(() =>
-    this.orders().filter((order) => order.status === 0),
+    this.scopedOrders().filter(
+      (order) => order.status === 0 && order.orderItems.length > 0,
+    ),
+  );
+
+  readonly isEmpty = computed(
+    () =>
+      this.unsubmittedOrders().length === 0 &&
+      this.submittedOrders().length === 0,
   );
 
   readonly submittedOrder = computed(() => {
@@ -102,6 +129,7 @@ export class CartComponent implements OnInit {
   }
 
   goToReservations(): void {
+    this.submitOrderId.set(null);
     this.closeCart();
     void this.router.navigate(['/reservations']);
   }

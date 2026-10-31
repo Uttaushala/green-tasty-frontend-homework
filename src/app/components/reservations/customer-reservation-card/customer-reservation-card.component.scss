@@ -1,0 +1,147 @@
+@use 'app/shared/styles/abstracts/colors' as color;
+
+:host {
+  display: block;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden;
+  list-style: none;
+  background: color.$neutral-0;
+  border-radius: 24px;
+  box-shadow: 0 0 10px 4px color.$shadow;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: color.$neutral-900;
+  background: color.$neutral-100;
+
+  &.reserved {
+    background: color.$blue-100;
+  }
+
+  &.in-progress {
+    background: color.$orange-100;
+  }
+
+  &.completed {
+    background: color.$green-100;
+  }
+
+  &.cancelled {
+    background: color.$red-100;
+  }
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: color.$orange-400;
+  border-radius: 50%;
+}
+
+.content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: 0 24px 24px;
+}
+
+.location,
+.share,
+.details {
+  border-bottom: 1px solid color.$neutral-100;
+}
+
+.location {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding-top: 16px;
+  padding-bottom: 12px;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 24px;
+  color: color.$neutral-900;
+
+  img {
+    flex: none;
+  }
+}
+
+.trash {
+  display: flex;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid color.$orange-400;
+    outline-offset: 2px;
+  }
+}
+
+.share {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.share-text {
+  max-width: 260px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: color.$neutral-600;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 20px;
+  padding: 12px 0;
+}
+
+.progress {
+  color: color.$neutral-600;
+
+  strong {
+    font-weight: 500;
+    color: color.$neutral-900;
+
+    &.over {
+      color: color.$red-400;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px;
+  min-height: 32px;
+  padding-top: 24px;
+}

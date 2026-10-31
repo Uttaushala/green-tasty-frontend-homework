@@ -67,18 +67,22 @@
 }
 
 .remind {
-  padding: 2px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 2px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: color.$green-800;
   background: none;
-  border: 1px solid color.$green-800;
-  border-radius: 12px;
+  border: none;
+  border-bottom: 1px solid color.$green-800;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    background: color.$green-100;
+    color: color.$green-600;
+    border-color: color.$green-600;
   }
 
   &:disabled {

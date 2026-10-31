@@ -100,6 +100,7 @@ describe('CartComponent', () => {
       {
         orderId: 'order-1',
         status: 0,
+        orderItems: [{ quantity: 1 }],
       },
       {
         orderId: 'order-2',
@@ -116,6 +117,56 @@ describe('CartComponent', () => {
         .unsubmittedOrders()
         .map((order) => order.status),
     ).toEqual([0]);
+  });
+
+  it('hides drafts without dishes and shows the empty cart', () => {
+    component.orders.set([
+      {
+        orderId: 'order-1',
+        status: 0,
+        reservationId: 'res-1',
+        reservationAddress: 'Test address',
+        reservationTime: '2026-09-07T12:15:00Z',
+        orderItems: [],
+      },
+    ]);
+
+    expect(component.unsubmittedOrders()).toEqual([]);
+    expect(component.isEmpty()).toBeTrue();
+  });
+
+  it('is not empty when a draft has dishes', () => {
+    component.orders.set([
+      {
+        orderId: 'order-1',
+        status: 0,
+        orderItems: [{ quantity: 1 }],
+      },
+    ] as Order[]);
+
+    expect(component.isEmpty()).toBeFalse();
+  });
+
+  it('shows only the orders of the reservation the menu was opened for', () => {
+    component.reservationFilter.set('res-1');
+    component.orders.set([
+      { orderId: 'a', status: 0, reservationId: 'res-1', orderItems: [{ quantity: 1 }] },
+      { orderId: 'b', status: 0, reservationId: 'res-2', orderItems: [{ quantity: 1 }] },
+      { orderId: 'c', status: 1, reservationId: 'res-2', orderItems: [{ quantity: 1 }] },
+    ] as Order[]);
+
+    expect(component.unsubmittedOrders().map((order) => order.orderId)).toEqual(['a']);
+    expect(component.submittedOrders()).toEqual([]);
+  });
+
+  it('shows every order when no reservation is selected', () => {
+    component.reservationFilter.set(null);
+    component.orders.set([
+      { orderId: 'a', status: 0, reservationId: 'res-1', orderItems: [{ quantity: 1 }] },
+      { orderId: 'b', status: 0, reservationId: 'res-2', orderItems: [{ quantity: 1 }] },
+    ] as Order[]);
+
+    expect(component.unsubmittedOrders().length).toBe(2);
   });
 
   it('should navigate to reservations when goToReservations is called', () => {

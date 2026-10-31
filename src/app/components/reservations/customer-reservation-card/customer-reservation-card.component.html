@@ -1,0 +1,92 @@
+<li class="card">
+  <div class="status" [class]="'status ' + statusView().cssClass">
+    @if (hasNewGuests()) {
+      <span class="dot" role="img" aria-label="New guests joined"></span>
+    }
+    {{ statusView().label }}
+  </div>
+
+  <div class="content">
+    <div class="location">
+      <span class="item">
+        <img src="assets/svg/location-green.svg" alt="" width="16" height="16" />
+        {{ reservation().locationAddress }}
+      </span>
+
+      @if (isReserved()) {
+        <button
+          type="button"
+          class="trash"
+          aria-label="Cancel reservation"
+          (click)="cancelReservation.emit(reservation().id)"
+        >
+          <img src="assets/svg/trash.svg" alt="" width="24" height="24" />
+        </button>
+      }
+    </div>
+
+    @if (showInviteRow()) {
+      <div class="share">
+        <p class="share-text">Share link with your guests so they can place their pre-orders</p>
+        <button type="button" class="button button--secondary button--small" (click)="inviteGuests.emit(reservation())">
+          Invite Guests
+        </button>
+      </div>
+    }
+
+    <div class="details">
+      <span class="item">
+        <img src="assets/svg/calendar-green.svg" alt="" width="16" height="16" />
+        {{ reservation().startTime | date: 'MMM d, y' }}
+      </span>
+
+      @if (showProgress()) {
+        <span class="item">
+          <img src="assets/svg/pre-order.svg" alt="" width="16" height="16" />
+          Pre-orders:
+          <span class="progress"
+            ><strong [class.over]="progressOver()">{{ progress()?.submitted }}</strong
+            >/{{ reservation().guestCount }}</span
+          >
+        </span>
+      } @else {
+        <span class="item item--empty"></span>
+      }
+
+      <span class="item">
+        <img src="assets/svg/clock-green.svg" alt="" width="16" height="16" />
+        {{ reservation().startTime | date: 'HH:mm' }} - {{ reservation().endTime | date: 'HH:mm' }}
+      </span>
+
+      <span class="item">
+        <img src="assets/svg/people-green.svg" alt="" width="16" height="16" />
+        {{ guestsLabel() }}
+      </span>
+    </div>
+
+    <div class="actions">
+      @if (isReserved()) {
+        @if (showGroupOrder()) {
+          <button type="button" class="button button--secondary button--small" (click)="onGroupOrder()">
+            Group Pre-Order
+          </button>
+        }
+        @if (showAddPreOrder()) {
+          <button type="button" class="button button--primary button--small" (click)="onPreOrder()">
+            Add Pre-Order
+          </button>
+        }
+      } @else if (canGiveFeedback()) {
+        @if (hasFullFeedback()) {
+          <button type="button" class="button button--secondary button--small" (click)="updateFeedback.emit(reservation())">
+            Update Feedback
+          </button>
+        } @else {
+          <button type="button" class="button button--primary button--small" (click)="leaveFeedback.emit(reservation())">
+            Leave Feedback
+          </button>
+        }
+      }
+    </div>
+  </div>
+</li>

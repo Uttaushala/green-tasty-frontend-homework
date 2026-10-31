@@ -19,9 +19,9 @@ import { Order } from '@app/models/orders/order.model';
 })
 export class NotSubmittedOrderComponent {
   readonly order = input.required<Order>();
+  readonly showReservation = input(false);
 
   readonly submitted = output<string>();
-  readonly addDish = output<void>();
   readonly removeDish = output<string>();
   readonly updateQuantity = output<{
     itemId: string;
@@ -53,10 +53,6 @@ export class NotSubmittedOrderComponent {
 
   submit(): void {
     this.submitted.emit(this.order().orderId);
-  }
-
-  addDishToOrder(): void {
-    this.addDish.emit();
   }
 
   removeDishFromOrder(itemId: string): void {

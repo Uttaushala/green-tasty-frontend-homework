@@ -13,6 +13,7 @@ import { GroupOrdersService } from '@app/services/group-orders/group-orders.serv
 import { ToastService } from '@app/services/toast/toast.service';
 import { ModalComponent } from '@app/shared/custom-components/modal/modal.component';
 import { consolidatePreOrder } from '@app/shared/helpers/consolidate-pre-order';
+import { markGuestsSeen } from '@app/shared/helpers/seen-guests';
 
 /** Як часто підтягуємо свіжі кошики, поки група Open. */
 export const SYNC_INTERVAL_MS = 15_000;
@@ -131,6 +132,10 @@ export class GroupOrderPageComponent {
 
   /** Closes the window and returns to the reservations list underneath it. */
   close(): void {
+    markGuestsSeen(
+      this.reservationId,
+      this.participants().filter((person) => person.type === 'Guest').length,
+    );
     void this.router.navigate(['/reservations']);
   }
 

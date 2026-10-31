@@ -20,7 +20,7 @@ import {
 } from 'rxjs';
 
 import { AuthenticationService } from '@app/auth/services/authentication.service';
-import { CardReservationComponent } from '@app/components/reservations/card-reservation/card-reservation.component';
+import { CustomerReservationCardComponent } from '@app/components/reservations/customer-reservation-card/customer-reservation-card.component';
 import { FeedbackWindowComponent } from '@app/components/reservations/feedback-window/feedback-window.component';
 import { ReservationInviteModalComponent } from '@app/components/reservations/reservation-invite-modal/reservation-invite-modal.component';
 import { ReservationConfirmedComponent } from '@app/components/reservations/reservation-confirmed/reservation-confirmed.component';
@@ -38,8 +38,10 @@ import { LocationsService } from '@app/services/locations/locations.service';
 import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ReservationService } from '@app/services/reservation/reservation.service';
 import { TableService } from '@app/services/table/table.service';
+import { ToastService } from '@app/services/toast/toast.service';
 import { Roles } from '@app/shared/constants/roles';
 import { HeaderComponent } from '@app/shared/custom-components/header/header.component';
+import { ModalComponent } from '@app/shared/custom-components/modal/modal.component';
 import {
   formatTime,
   revertFormatDate,
@@ -55,9 +57,10 @@ interface ReservationStatusView {
   standalone: true,
   imports: [
     HeaderComponent,
-    RouterLink,
-    RouterOutlet,
-    CardReservationComponent,
+    RouterLink,
+    RouterOutlet,
+    CustomerReservationCardComponent,
+    ModalComponent,
     MakeReservationComponent,
     ReservationConfirmedComponent,
     ReservationInviteModalComponent,
@@ -78,6 +81,7 @@ export class ReservationDashboardComponent implements OnInit {
   private readonly locationsService = inject(LocationsService);
   private readonly ordersService = inject(PreOrdersService);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly Roles = Roles;
@@ -100,6 +104,7 @@ export class ReservationDashboardComponent implements OnInit {
   readonly showEditReservationConfirmed = signal(false);
   readonly showFeedbackModal = signal(false);
   readonly showInviteModal = signal(false);
+  readonly reservationToCancel = signal<string | null>(null);
 
   readonly statusEnum: Record<number, ReservationStatusView> = {
     [ReservationStatusCustomer.Reserved]: {
@@ -179,6 +184,24 @@ export class ReservationDashboardComponent implements OnInit {
     this.loadReservations();
   }
 
+  requestCancel(id: string): void {
+    this.reservationToCancel.set(id);
+  }
+
+  closeCancelDialog(): void {
+    this.reservationToCancel.set(null);
+  }
+
+  confirmCancel(): void {
+    const id = this.reservationToCancel();
+
+    this.reservationToCancel.set(null);
+
+    if (id) {
+      this.cancelReservation(id);
+    }
+  }
+
   cancelReservation(id: string): void {
     this.reservationService
       .cancelReservation$(id)
@@ -192,6 +215,8 @@ export class ReservationDashboardComponent implements OnInit {
             );
             return;
           }
+
+          this.toastService.success('Reservation Cancelled!');
 
           this.reservations.update((reservations) =>
             reservations.map((reservation) =>

@@ -1,9 +1,4 @@
-import {
-  ComponentFixture,
-  TestBed,
-} from '@angular/core/testing';
-
-import { Order } from '@app/models/orders/order.model';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SubmitOrderModalComponent } from './submit-order-modal.component';
 
@@ -11,51 +6,36 @@ describe('SubmitOrderModalComponent', () => {
   let component: SubmitOrderModalComponent;
   let fixture: ComponentFixture<SubmitOrderModalComponent>;
 
-  const order = {
-    orderId: 'order-1',
-    reservationAddress: 'Test address',
-    reservationId: 'res-1',
-    reservationTime: '2026-09-07T12:15:00Z',
-    status: 1,
-    orderItems: [],
-  } as Order;
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SubmitOrderModalComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(
-      SubmitOrderModalComponent,
-    );
-
+    fixture = TestBed.createComponent(SubmitOrderModalComponent);
     component = fixture.componentInstance;
-
-    fixture.componentRef.setInput('order', order);
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('shows the confirmation text from the design', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+    expect(text).toContain('Pre-Order Submitted');
+    expect(text).toContain('Your Pre-Order was sent successfully.');
+    expect(text).toContain('Wait for the confirmation from the restaurant.');
   });
 
-  it('should emit canceled when cancelOrder is called', () => {
-    spyOn(component.canceled, 'emit');
+  it('emits viewReservations when the button is clicked', () => {
+    spyOn(component.viewReservations, 'emit');
 
-    component.cancelOrder();
+    const button = (fixture.nativeElement as HTMLElement).querySelector(
+      '.actions button',
+    ) as HTMLButtonElement;
+    button.click();
 
-    expect(component.canceled.emit).toHaveBeenCalled();
+    expect(component.viewReservations.emit).toHaveBeenCalled();
   });
 
-  it('should emit edited when editOrder is called', () => {
-    spyOn(component.edited, 'emit');
-
-    component.editOrder();
-
-    expect(component.edited.emit).toHaveBeenCalled();
-  });
-
-  it('should emit closed when closeModal is called', () => {
+  it('emits closed when closeModal is called', () => {
     spyOn(component.closed, 'emit');
 
     component.closeModal();

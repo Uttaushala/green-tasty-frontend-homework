@@ -1,10 +1,14 @@
 <app-header />
 
 <div class="subheading">
-  <h3>
-    Hello, {{ firstName() }} {{ lastName() }}
-    ({{ role() }})
-  </h3>
+  <h3>Hello, {{ firstName() }} {{ lastName() }}</h3>
+
+  <p class="support">
+    <img src="assets/svg/headset.svg" alt="" width="29" height="30" />
+    <span>
+      For any assistance with your table reservation or pre-order, please call us at this number: +123 445 678 8990.
+    </span>
+  </p>
 </div>
 
 @if (!reservationsLoaded()) {
@@ -14,15 +18,12 @@
 } @else if (reservations().length > 0) {
   <ul class="reservation-list">
     @for (reservation of reservations(); track reservation.id) {
-      <app-card-reservation
-        [r]="reservation"
-        [role]="role()"
-        [statusEnum]="statusEnum"
-        (cancelReservation)="cancelReservation($event)"
-        (editReservation)="openEditModal($event)"
+      <app-customer-reservation-card
+        [reservation]="reservation"
+        (cancelReservation)="requestCancel($event)"
         (inviteGuests)="openInviteModal($event)"
-        (leaveFeedbackReservation)="openFeedback($event)"
-        (updateFeedbackReservation)="openFeedback($event)"
+        (leaveFeedback)="openFeedback($event)"
+        (updateFeedback)="openFeedback($event)"
       />
     }
   </ul>
@@ -100,6 +101,19 @@
     [reservation]="selectedReservationAsReservation()!"
     (closed)="closeInviteModal()"
   />
+}
+
+@if (reservationToCancel()) {
+  <app-modal title="Cancel Reservation" width="520px" (closed)="closeCancelDialog()">
+    <p class="dialog-text">
+      Cancelling this reservation will remove all pre-orders.<br />
+      You won't be able to undo this action.
+    </p>
+    <div modal-actions class="dialog-actions">
+      <button type="button" class="button button--tertiary button--large" (click)="closeCancelDialog()">Keep it</button>
+      <button type="button" class="button button--secondary button--large danger" (click)="confirmCancel()">Cancel</button>
+    </div>
+  </app-modal>
 }
 
 <!-- Group Pre-Order opens here as a window over the list -->

@@ -57,6 +57,26 @@ describe('NotSubmittedOrderComponent', () => {
     ).toHaveBeenCalledWith('order-1');
   });
 
+  it('shows the design title and no add-dish button', () => {
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector('.order-title')?.textContent).toContain('My Pre-Order');
+    expect(host.textContent).not.toContain('Add dish');
+    expect(host.querySelector('.submit-btn')?.textContent).toContain('Submit Pre-Order');
+  });
+
+  it('shows the reservation line only when asked to', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.reservation')).toBeNull();
+    expect(host.querySelector('.footer--sticky')).not.toBeNull();
+
+    fixture.componentRef.setInput('showReservation', true);
+    fixture.detectChanges();
+
+    expect(host.querySelector('.reservation')?.textContent).toContain('Test address');
+    expect(host.querySelector('.footer--sticky')).toBeNull();
+  });
+
   it('should calculate the total price', () => {
     expect(component.totalPrice()).toBe(20);
   });

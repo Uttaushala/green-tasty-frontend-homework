@@ -16,6 +16,7 @@
         [attr.aria-label]="'Remind ' + participant().name + ' to choose dishes'"
         (click)="remindClick.emit(participant())"
       >
+        <img src="assets/svg/bell-regular.svg" alt="" width="16" height="16" />
         {{ reminding() ? 'Sending…' : 'Remind' }}
       </button>
     }

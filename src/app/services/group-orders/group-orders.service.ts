@@ -1,9 +1,10 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, switchMap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '@app/auth/skip-error-toast.context';
 import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
 import { RemindGuestsRequest, RemindGuestsResponse } from '@app/models/group-orders/remind-guests.model';
+import { PreOrderProgress } from '@app/models/group-orders/pre-order-progress.model';
 import { GroupStatusResponse } from '@app/models/group-orders/group-status.model';
 import { OwnerSessionResponse } from '@app/models/group-orders/owner-session.model';
 import { SubmitGroupPreOrderRequest, SubmittedDish } from '@app/models/group-orders/submit-group-pre-order.model';
@@ -44,6 +45,22 @@ export class GroupOrdersService {
     return this.http.get<GroupSessionsResponse>(`${this.groupUrl(groupReservationId)}/sessions`, {
       context: this.context(options),
     });
+  }
+
+  /** Quiet progress lookup for the reservation card; null when the reservation has no group. */
+  getPreOrderProgress$(reservationId: string): Observable<PreOrderProgress | null> {
+    return this.http
+      .get<GuestInvite>(`${this.baseUrl}/reservations/${encodeURIComponent(reservationId)}/group-reservation`, {
+        context: this.context({ silent: true }),
+      })
+      .pipe(
+        switchMap((invite) => this.getSessions$(invite.GroupReservationId, { silent: true })),
+        map((sessions) => ({
+          submitted: sessions.participants.filter((person) => person.isSubmitted).length,
+          guestsJoined: sessions.participants.filter((person) => person.type === 'Guest').length,
+        })),
+        catchError(() => of(null)),
+      );
   }
 
   getOwnerSessionId$(reservationId: string): Observable<string> {

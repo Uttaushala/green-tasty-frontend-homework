@@ -32,27 +32,20 @@
       </button>
     </div>
 
+    <div class="cart-body">
     @if (unsubmittedOrders().length > 0) {
-      <div class="orders-list">
-        <div class="list-header">
-          <h3>Not submitted pre-orders</h3>
-
-          <span class="body">
-            You have not submitted pre-orders
-          </span>
-        </div>
-
+      <div class="orders-list orders-list--draft">
         @for (
-            item of unsubmittedOrders();
+          item of unsubmittedOrders();
           track item.orderId
-          ) {
+        ) {
           <app-not-submitted-order
             [order]="item"
+            [showReservation]="unsubmittedOrders().length > 1"
             (submitted)="submitOrder($event)"
             (removeDish)="
               removeDishFromOrder(item.orderId, $event)
             "
-            (addDish)="addDishToOrder(item.orderId)"
             (updateQuantity)="
               updateDishQuantity(
                 item.orderId,
@@ -91,7 +84,7 @@
       </div>
     }
 
-    @if (orders().length === 0) {
+    @if (isEmpty()) {
       <div class="empty-cart">
         <img
           src="assets/img/empty-cart.png"
@@ -119,6 +112,7 @@
         </div>
       </div>
     }
+    </div>
   </div>
 </div>
 
@@ -130,13 +124,9 @@
   />
 }
 
-@if (submitOrderId(); as orderId) {
-  @if (submittedOrder(); as order) {
-    <app-submit-order-modal
-      [order]="order"
-      (closed)="closeSubmitModal()"
-      (edited)="editOrderModal()"
-      (canceled)="openCancelModal(orderId)"
-    />
-  }
+@if (submitOrderId()) {
+  <app-submit-order-modal
+    (closed)="closeSubmitModal()"
+    (viewReservations)="goToReservations()"
+  />
 }
