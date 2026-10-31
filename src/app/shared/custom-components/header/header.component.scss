@@ -536,3 +536,58 @@
   }
 
 }
+
+.icon-button {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: 2px;
+  left: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 12px;
+  background: color.$orange-400;
+  color: color.$neutral-900;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+// Design: 68px header, the menu is centred and every tab sits on a thin line (2px green when active).
+@media (min-width: 769px) {
+  .header {
+    position: relative;
+    box-sizing: border-box;
+    height: 68px;
+    padding: 0 24px 0 16px;
+    border-bottom: 1px solid color.$neutral-200;
+
+    .nav {
+      position: absolute;
+      left: 50%;
+      bottom: -1px;
+      gap: 16px;
+      transform: translateX(-50%);
+    }
+
+    .nav-link {
+      padding: 0 24px 12px;
+      font-weight: 500;
+      line-height: 32px;
+      border-bottom: 1px solid color.$neutral-200;
+
+      &.active {
+        border-bottom: 2px solid color.$green-600;
+
+        &::after {
+          content: none;
+        }
+      }
+    }
+  }
+}

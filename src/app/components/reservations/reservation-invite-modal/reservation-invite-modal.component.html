@@ -1,6 +1,6 @@
-<app-modal [title]="modalTitle()" [width]="isInviteMode() ? '504px' : '520px'" (closed)="onClose()">
+<app-modal [title]="modalTitle()" [width]="'520px'" (closed)="onClose()">
   @if (isInviteMode()) {
-    <p class="subtitle">Share this link with your guests so they can place their pre-orders.</p>
+    <p class="subtitle">Share this link with your guests so they can place their pre-orders</p>
   }
   <dl class="info">
     <div class="info-row">

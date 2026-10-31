@@ -13,7 +13,7 @@
   list-style: none;
   background: color.$neutral-0;
   border-radius: 24px;
-  box-shadow: 0 0 10px 4px color.$shadow;
+  box-shadow: 0 0 5px rgba(218, 218, 218, 0.7);
 }
 
 .status {
@@ -59,7 +59,6 @@
   padding: 0 24px 24px;
 }
 
-.location,
 .share,
 .details {
   border-bottom: 1px solid color.$neutral-100;
@@ -69,9 +68,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 56px;
+  min-height: 32px;
   padding-top: 16px;
-  padding-bottom: 12px;
+
+  .item {
+    font-weight: 500;
+  }
+}
+
+// Without the share row the divider sits right under the address.
+.location + .details {
+  margin-top: 16px;
+  border-top: 1px solid color.$neutral-100;
 }
 
 .item {
@@ -89,6 +97,10 @@
 
 .trash {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   padding: 0;
   background: none;
   border: none;
@@ -105,10 +117,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 0;
+  padding: 16px 0;
 }
 
 .share-text {
+  flex: 1 1 auto;
   max-width: 260px;
   margin: 0;
   font-size: 12px;
@@ -120,7 +133,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px 20px;
-  padding: 12px 0;
+  padding: 16px 0;
 }
 
 .progress {
@@ -143,5 +156,5 @@
   justify-content: flex-end;
   gap: 12px;
   min-height: 32px;
-  padding-top: 24px;
+  padding-top: 16px;
 }

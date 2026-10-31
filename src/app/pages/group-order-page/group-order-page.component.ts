@@ -20,6 +20,12 @@ export const SYNC_INTERVAL_MS = 15_000;
 
 type LoadError = 'not-found' | 'failed';
 
+/** Бекенд забороняє змінювати замовлення пізніше ніж за 30 хвилин до початку броні. */
+export const MODIFICATION_CUTOFF_MS = 30 * 60_000;
+
+/** Як часто перераховуємо, чи не настав режим перегляду. */
+const CLOCK_TICK_MS = 30_000;
+
 /** Значення `remindingTarget`, коли нагадування йде всім гостям одразу. */
 const ALL_GUESTS = 'all';
 
@@ -61,6 +67,17 @@ export class GroupOrderPageComponent {
   readonly groupId = computed(() => this.invite()?.GroupReservationId ?? '');
   readonly isSent = computed(() => this.status() === 'Submitted');
 
+  private readonly now = signal(Date.now());
+  /** Менше 30 хвилин до початку броні (або вона вже почалась): лише перегляд, без змін. */
+  readonly viewMode = computed(() => {
+    const invite = this.invite();
+    if (!invite) {
+      return false;
+    }
+    const start = Date.parse(invite.StartTime);
+    return !Number.isNaN(start) && start - this.now() < MODIFICATION_CUTOFF_MS;
+  });
+
   // The owner's own cart goes first, as in the design; guests keep the server order.
   readonly orderedParticipants = computed(() => {
     const everyone = this.participants();
@@ -73,11 +90,11 @@ export class GroupOrderPageComponent {
   readonly remindableGuests = computed(() =>
     this.participants().filter((person) => person.type === 'Guest' && !person.isSubmitted),
   );
-  readonly canRemind = computed(() => !this.isSent() && this.status() === 'Open');
+  readonly canRemind = computed(() => !this.isSent() && !this.viewMode() && this.status() === 'Open');
   readonly allReminding = computed(() => this.remindingTarget() === ALL_GUESTS);
   readonly hasAnyDishes = computed(() => this.participants().some((person) => person.items.length > 0));
   readonly canSubmit = computed(
-    () => !this.isSent() && !this.submitting() && this.consolidated().items.length > 0,
+    () => !this.isSent() && !this.viewMode() && !this.submitting() && this.consolidated().items.length > 0,
   );
 
   readonly statusLabel = computed(() => {
@@ -94,6 +111,9 @@ export class GroupOrderPageComponent {
   constructor() {
     this.load();
     this.startSync();
+    timer(CLOCK_TICK_MS, CLOCK_TICK_MS)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.now.set(Date.now()));
   }
 
   load(): void {
@@ -230,6 +250,9 @@ export class GroupOrderPageComponent {
   }
 
   askRemoveGuest(guest: Participant): void {
+    if (this.viewMode()) {
+      return;
+    }
     this.guestToRemove.set(guest);
   }
 
@@ -241,7 +264,7 @@ export class GroupOrderPageComponent {
 
   confirmRemoveGuest(): void {
     const guest = this.guestToRemove();
-    if (!guest || this.removing()) {
+    if (!guest || this.removing() || this.viewMode()) {
       return;
     }
     this.removing.set(true);
@@ -255,6 +278,7 @@ export class GroupOrderPageComponent {
           this.participants.set(response.participants);
           this.removing.set(false);
           this.guestToRemove.set(null);
+          this.toastService.success('Guest Removed');
         },
         error: () => {
           this.removing.set(false);

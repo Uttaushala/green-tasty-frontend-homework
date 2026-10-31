@@ -25,7 +25,7 @@ const INVITE = {
   GroupReservationId: 'grp-1',
   LocationAddress: 'Rustaveli Avenue 48',
   MaxGuestCount: 5,
-  StartTime: '2026-10-21T16:00:00Z',
+  StartTime: '2099-10-21T16:00:00Z',
   EndTime: '2026-10-21T17:30:00Z',
 } as GuestInvite;
 

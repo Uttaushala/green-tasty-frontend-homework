@@ -21,7 +21,7 @@
         </div>
       </div>
       @if (preOrderEnabled()) {
-        <app-custom-button size="small" fullWidth [disabled]="isUnavailable()" (click)="preOrderClicked.emit()">
+        <app-custom-button size="small" fullWidth [disabled]="isUnavailable()" (click)="onPreOrderClicked($event)">
           Pre-Order
         </app-custom-button>
       }

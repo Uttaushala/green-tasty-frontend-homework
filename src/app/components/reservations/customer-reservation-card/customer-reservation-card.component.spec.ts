@@ -96,6 +96,20 @@ describe('CustomerReservationCardComponent', () => {
     expect(host.querySelector('.progress')?.textContent?.replace(/\s/g, '')).toBe('3/4');
   });
 
+  it('falls back to the owner order count when the group data is unavailable', async () => {
+    const host = render(buildReservation({ hasSubmittedPreOrder: true }), null);
+    await settle();
+
+    expect(host.querySelector('.progress')?.textContent?.replace(/\s/g, '')).toBe('1/4');
+  });
+
+  it('shows 0 submitted when the group is unavailable and the owner has not ordered', async () => {
+    const host = render(buildReservation(), null);
+    await settle();
+
+    expect(host.querySelector('.progress')?.textContent?.replace(/\s/g, '')).toBe('0/4');
+  });
+
   it('hides the invite row and counter for a single guest', async () => {
     const host = render(buildReservation({ guestCount: 1 }), null);
     await settle();
@@ -155,6 +169,16 @@ describe('CustomerReservationCardComponent', () => {
     await settle();
 
     expect(host.querySelector('.actions')?.textContent).toContain('Update Feedback');
+  });
+
+  it('passes a readable reservation label to the menu', async () => {
+    render(buildReservation({ tableName: 'Table 1' }), null);
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+    fixture.componentInstance.onPreOrder();
+
+    const extras = navigate.calls.mostRecent().args[1] as { queryParams: { reservationLabel: string } };
+    expect(extras.queryParams.reservationLabel).toBe('48 Rustaveli Avenue, Table 1, Oct 17, 2026, 12:00 - 14:00');
   });
 
   it('opens the group order route', async () => {

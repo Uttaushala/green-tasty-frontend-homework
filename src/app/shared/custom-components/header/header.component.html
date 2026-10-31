@@ -18,7 +18,7 @@
     }
 
     @if (user()?.role === Roles.CUSTOMER || !user()) {
-      <a routerLink="/main" class="nav-link" [routerLinkActive]="'active'">Main page</a>
+      <a routerLink="/main" class="nav-link" [routerLinkActive]="'active'" [class.active]="isMenuRoute()">Main page</a>
       <a routerLink="/tables" class="nav-link" [routerLinkActive]="'active'">Book a Table</a>
     }
 
@@ -53,6 +53,9 @@
           <div>
             <button type="button" class="icon-button icon-button--large" (click)="toggleCart()">
               <img src="assets/svg/cart-empty.svg" alt="cart icon" class="action-icon" />
+              @if (cartCount() > 0) {
+                <span class="cart-badge">{{ cartCount() }}</span>
+              }
               <h5> Cart</h5>
             </button>
           </div>
@@ -150,6 +153,9 @@
           alt="cart icon"
           class="action-icon"
         />
+        @if (cartCount() > 0) {
+          <span class="cart-badge">{{ cartCount() }}</span>
+        }
       </button>
     }
 

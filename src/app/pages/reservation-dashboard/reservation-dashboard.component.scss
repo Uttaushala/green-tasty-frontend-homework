@@ -29,17 +29,18 @@
   align-items: center;
   gap: 8px;
   box-sizing: border-box;
-  max-width: 426px;
+  width: 428px;
+  max-width: 100%;
   margin: 0;
-  padding: 8px 12px;
+  padding: 4px 8px;
 
   font-size: 12px;
   line-height: 16px;
-  color: color.$neutral-600;
+  color: color.$neutral-900;
 
-  background: color.$orange-30;
+  background: color.$bg-yellow;
   border: 1px solid color.$green-150;
-  border-radius: 8px;
+  border-radius: 12px;
 
   img {
     flex: none;

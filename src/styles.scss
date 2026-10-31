@@ -18,6 +18,18 @@
   margin-top: 87px !important;
   margin-right:20px !important;
 }
+
+.toast-success .mat-mdc-snackbar-surface,
+.toast-error .mat-mdc-snackbar-surface,
+.toast-info .mat-mdc-snackbar-surface {
+  min-width: 331px !important;
+}
+
+.toast-success .mdc-snackbar__label,
+.toast-error .mdc-snackbar__label,
+.toast-info .mdc-snackbar__label {
+  padding: 12px 16px !important;
+}
 .toast-success .mat-mdc-snackbar-surface {
   background-color: color.$green-100 !important;
   border-radius: 8px !important ;

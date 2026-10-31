@@ -42,6 +42,7 @@ describe('GeneralInformationComponent', () => {
     error: jasmine.Spy;
   };
 
+  let originalFileReader: typeof FileReader;
   let readSpy: jasmine.Spy;
   let abortSpy: jasmine.Spy;
 
@@ -50,6 +51,14 @@ describe('GeneralInformationComponent', () => {
 
   let readerResults: WeakMap<FileReader, string>;
   let readerStates: WeakMap<FileReader, FileReader['readyState']>;
+
+  afterEach(() => {
+    Object.defineProperty(window, 'FileReader', {
+      value: originalFileReader,
+      configurable: true,
+      writable: true,
+    });
+  });
 
   beforeEach(async () => {
     auth = {
@@ -80,19 +89,33 @@ describe('GeneralInformationComponent', () => {
     readerResults = new WeakMap();
     readerStates = new WeakMap();
 
+    // zone.js wraps FileReader and its accessors are not configurable, so jasmine cannot spy on them.
+    // A subclass of the original class has a prototype we can spy on; the component only uses the global name.
+    const zoneOriginal =
+      (window as unknown as Record<string, typeof FileReader | undefined>)['__zone_symbol__FileReader'] ??
+      FileReader;
+    class TestFileReader extends zoneOriginal {}
+    originalFileReader = window.FileReader;
+    Object.defineProperty(window, 'FileReader', {
+      value: TestFileReader,
+      configurable: true,
+      writable: true,
+    });
+    const nativeReaderPrototype = TestFileReader.prototype;
+
     // Control callbacks without reading or decoding real files.
-    spyOnProperty(FileReader.prototype, 'result', 'get')
+    spyOnProperty(nativeReaderPrototype, 'result', 'get')
       .and.callFake(function (this: FileReader) {
       return readerResults.get(this) ?? null;
     });
 
-    spyOnProperty(FileReader.prototype, 'readyState', 'get')
+    spyOnProperty(nativeReaderPrototype, 'readyState', 'get')
       .and.callFake(function (this: FileReader) {
       return readerStates.get(this) ?? FileReader.EMPTY;
     });
 
     readSpy = spyOn(
-      FileReader.prototype,
+      nativeReaderPrototype,
       'readAsDataURL',
     ).and.callFake(function (this: FileReader) {
       readers.push(this);
@@ -100,7 +123,7 @@ describe('GeneralInformationComponent', () => {
     });
 
     abortSpy = spyOn(
-      FileReader.prototype,
+      nativeReaderPrototype,
       'abort',
     ).and.callFake(function (this: FileReader) {
       readerStates.set(this, FileReader.DONE);

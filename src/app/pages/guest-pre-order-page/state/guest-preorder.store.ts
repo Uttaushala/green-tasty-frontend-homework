@@ -226,17 +226,32 @@ export class GuestPreorderStore {
 
         try {
             const res = await firstValueFrom(this.guestSessionsService.getMenu(id, token));
-            console.log('[menu response]', res);
-            console.log('[menu dishes keys]', Object.keys(res.dishes ?? {}));
 
             this.menuByCategory.set(res.dishes ?? {});
-        } catch (e) {
-            console.log('[menu error]', e);
-            this.menuError.set('Failed to load menu');
+        } catch (error) {
             this.menuByCategory.set({});
+
+            if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+                // The saved session is no longer valid: forget it so the guest can join again.
+                this.forgetExpiredSession();
+                this.menuError.set('Your guest session has expired. Please rejoin the reservation.');
+            } else {
+                this.menuError.set('Failed to load menu');
+            }
         } finally {
             this.menuLoading.set(false);
         }
+    }
+
+    private forgetExpiredSession(): void {
+        const ctx = this.contextId();
+        if (ctx) {
+            localStorage.removeItem(this.key(ctx, 'guestSessionId'));
+            localStorage.removeItem(this.key(ctx, 'guestSessionToken'));
+        }
+
+        this.guestSessionId.set(null);
+        this.guestSessionToken.set(null);
     }
 
     async refreshReminder(): Promise<void> {
@@ -416,4 +431,4 @@ export class GuestPreorderStore {
         return `guestPreorder:${ctx}:${part}`;
     }
 
-}
+}

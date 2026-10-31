@@ -19,7 +19,7 @@ const SESSIONS: GroupSessionsResponse = {
   total: 720,
 };
 const INVITE = { GroupReservationId: 'grp-1', LocationAddress: 'Rustaveli Avenue 48', MaxGuestCount: 5,
-  StartTime: '2026-10-21T16:00:00Z', EndTime: '2026-10-21T17:30:00Z' } as GuestInvite;
+  StartTime: '2099-10-21T16:00:00Z', EndTime: '2026-10-21T17:30:00Z' } as GuestInvite;
 
 function buttonByText(root: ParentNode, text: string): HTMLButtonElement | undefined {
   return [...root.querySelectorAll('button')].find((b) => b.textContent?.trim() === text) as HTMLButtonElement | undefined;
@@ -79,6 +79,18 @@ describe('Бонус · Remove Guest', () => {
 
     expect(service.removeSession$).toHaveBeenCalledOnceWith('grp-1', 'olena');
     expect(element.querySelectorAll('app-participant-card').length).toBe(2);
+  });
+
+  it('після видалення гостя показує toast «Guest Removed»', () => {
+    service.removeSession$.and.returnValue(of({ participants: SESSIONS.participants.slice(0, 2), total: 540 }));
+    const { fixture, element } = create();
+    const toast = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
+
+    removeButtons(element)[1].click();
+    fixture.detectChanges();
+    buttonByText(element.querySelector('[role="dialog"]')!, 'Remove Guest')?.click();
+
+    expect(toast.success).toHaveBeenCalledWith('Guest Removed');
   });
 
   it('помилка DELETE: список лишається без змін', () => {

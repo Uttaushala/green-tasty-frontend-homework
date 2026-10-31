@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Params, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { PreOrderProgress } from '@app/models/group-orders/pre-order-progress.model';
 import {
@@ -18,6 +18,7 @@ import {
   ReservationStatusCustomer,
 } from '@app/models/reservations/reservation.model';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
+import { buildPreOrderQueryParams } from '@app/shared/helpers/pre-order-query-params';
 import { readSeenGuests } from '@app/shared/helpers/seen-guests';
 
 interface StatusView {
@@ -72,11 +73,16 @@ export class CustomerReservationCardComponent {
 
   readonly showInviteRow = computed(() => this.isReserved() && this.isGroup());
 
-  readonly showProgress = computed(() => this.isGroup() && this.progress() !== null);
-
-  readonly progressOver = computed(
-    () => (this.progress()?.submitted ?? 0) > this.reservation().guestCount,
+  readonly showProgress = computed(
+    () => this.isGroup() && this.reservation().status !== ReservationStatusCustomer.Cancelled,
   );
+
+  /** Submitted pre-orders; without a group on the server only the owner's own order can exist. */
+  readonly submittedCount = computed(
+    () => this.progress()?.submitted ?? (this.reservation().hasSubmittedPreOrder === true ? 1 : 0),
+  );
+
+  readonly progressOver = computed(() => this.submittedCount() > this.reservation().guestCount);
 
   readonly hasNewGuests = computed(() => {
     const current = this.progress();
@@ -119,21 +125,7 @@ export class CustomerReservationCardComponent {
 
   onPreOrder(): void {
     const reservation = this.reservation();
-    const startTime = new Date(reservation.startTime);
-    const endTime = new Date(reservation.endTime);
-    const tableLabel = reservation.tableName || `Table ${reservation.tableId}`;
-
-    const queryParams: Params = {
-      preOrder: 'true',
-      reservationId: reservation.id,
-      reservationLabel: [
-        reservation.locationAddress,
-        tableLabel,
-        startTime.toDateString(),
-        `${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()}`,
-      ].join(', '),
-    };
-
+    const queryParams = buildPreOrderQueryParams(reservation, reservation.tableName || `Table ${reservation.tableId}`);
     void this.router.navigate(['/menu'], { queryParams });
   }
 

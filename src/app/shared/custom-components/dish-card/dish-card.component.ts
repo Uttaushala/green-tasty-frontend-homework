@@ -2,7 +2,6 @@ import {Component, ChangeDetectionStrategy, input, output, computed} from '@angu
 import { CommonModule } from '@angular/common';
 import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
 import { DishState } from '@app/models/enums/dish-state.model';
-import { DishStateLabels } from '@app/shared/mappers/dish-enum.mapper';
 import {CustomButtonComponent} from '@app/shared/custom-components/custom-button/custom-button.component';
 
 @Component({
@@ -22,9 +21,7 @@ export class DishCardComponent {
   readonly preOrderClicked = output<void>();
 
   readonly dishStateLabel = computed(() => {
-    const state = this.dish().state;
-
-    return DishStateLabels[state as DishState] ?? state;
+    return this.isUnavailable() ? 'Sold Out' : this.dish().state;
   });
 
   readonly isUnavailable = computed(() => {
@@ -37,8 +34,14 @@ export class DishCardComponent {
   });
 
   onCardClicked(): void {
-    if (!this.isUnavailable() && !this.preOrderEnabled()) {
+    if (!this.isUnavailable()) {
       this.dishClicked.emit();
     }
+  }
+
+  onPreOrderClicked(event: Event): void {
+    // The button lives inside the clickable card: do not open the full view as well.
+    event.stopPropagation();
+    this.preOrderClicked.emit();
   }
 }

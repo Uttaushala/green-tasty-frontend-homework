@@ -65,8 +65,9 @@ export class MenuPageComponent implements OnInit {
       const category = params['category'] as DishType;
       const sort = params['sort'] as DishSort;
 
+      // Design: the first tab is selected by default.
       this.selectedCategory =
-        category && Object.values(DishType).includes(category) ? category : null;
+        category && Object.values(DishType).includes(category) ? category : this.menuCategories[0];
       this.selectedSort =
         sort && Object.values(DishSort).includes(sort) ? sort : DishSort.PopularityDescending;
 
@@ -100,12 +101,12 @@ export class MenuPageComponent implements OnInit {
   }
 
   onCategorySelected(category: DishType): void {
-    this.selectedCategory = this.selectedCategory === category ? null : category;
+    this.selectedCategory = category;
 
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
-        category: this.selectedCategory || null,
+        category: this.selectedCategory,
         sort: this.selectedSort,
       },
       queryParamsHandling: 'merge',
@@ -136,6 +137,13 @@ export class MenuPageComponent implements OnInit {
 
   closeModal() {
     this.selectedDish = null;
+  }
+
+  addDishFromModal(dish: DishListResponse | null): void {
+    if (dish) {
+      this.addDishToCart(dish);
+    }
+    this.closeModal();
   }
 
   addDishToCart(dish: DishListResponse): void {

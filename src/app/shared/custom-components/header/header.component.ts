@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, signal, computed, effect, inject } from '@angular/core';
 import { Roles } from '@app/shared/constants/roles';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { UserModel } from '@app/auth/models/user.model';
 import { AuthenticationService } from '@app/auth/services/authentication.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { interval, Subscription } from 'rxjs';
+import { filter, interval, Subscription } from 'rxjs';
+import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
+import { Order } from '@app/models/orders/order.model';
 import { NotificationsService } from '@app/services/notifications/notifications.service';
 import { Notification } from '@app/models/notifications/notification.model';
 import { CartComponent } from '@app/components/cart/cart.component';
@@ -41,13 +43,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
   showNotificationsDropdown = signal(false);
   isMobileMenuOpen = signal(false);
   showCart = signal(false);
+  cartCount = signal(0);
+  isMenuRoute = signal(false);
 
   private pollingSubscription?: Subscription;
   private userSubscription?: Subscription;
+  private routerSubscription?: Subscription;
+  private ordersSubscription?: Subscription;
 
   protected readonly authService = inject(AuthenticationService);
   private readonly notificationsService = inject(NotificationsService);
   private readonly router = inject(Router);
+  private readonly preOrdersService = inject(PreOrdersService);
   private readonly guestPreorderStore = inject(GuestPreorderStore);
 
   get isGuestPreorderRoute(): boolean {
@@ -73,13 +80,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.userSubscription = this.authService.user$.subscribe((u) => this.user.set(u));
+    this.userSubscription = this.authService.user$.subscribe((u) => {
+      this.user.set(u);
+      this.refreshCartCount();
+    });
+    this.isMenuRoute.set(this.router.url.startsWith('/menu'));
+    this.ordersSubscription = this.preOrdersService.changes$.subscribe(() => this.refreshCartCount());
+    this.routerSubscription = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.isMenuRoute.set(this.router.url.startsWith('/menu'));
+        this.refreshCartCount();
+      });
   }
 
   ngOnDestroy() {
     this.isDestroyed = true;
     this.stopNotificationsPolling();
     this.userSubscription?.unsubscribe();
+    this.routerSubscription?.unsubscribe();
+    this.ordersSubscription?.unsubscribe();
   }
 
   startNotificationsPolling() {
@@ -179,6 +199,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   toggleCart() {
-    this.showCart.update((v) => !v);
+    this.showCart.update((value) => !value);
+    if (!this.showCart()) {
+      this.refreshCartCount();
+    }
+  }
+
+  /**
+   * Number of dishes in the not yet submitted pre-orders (orange badge on the cart icon).
+   * Counted the same way the cart shows them: only the current reservation when the page
+   * was opened for one (?reservationId=…), otherwise all of them.
+   */
+  private refreshCartCount(): void {
+    if (this.user()?.role !== Roles.CUSTOMER || this.isGuestPreorderRoute) {
+      this.cartCount.set(0);
+      return;
+    }
+
+    this.preOrdersService.getPreOrders().subscribe({
+      next: (orders: Order[]) => {
+        const reservationId = this.router.parseUrl(this.router.url).queryParams['reservationId'];
+        const total = orders
+          .filter((order) => order.status === 0)
+          .filter((order) => !reservationId || order.reservationId === reservationId)
+          .reduce(
+            (sum, order) =>
+              sum + order.orderItems.reduce((inner, item) => inner + item.quantity, 0),
+            0,
+          );
+        this.cartCount.set(total);
+      },
+      error: () => this.cartCount.set(0),
+    });
   }
 }

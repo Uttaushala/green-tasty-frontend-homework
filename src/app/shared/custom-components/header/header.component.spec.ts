@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { HeaderComponent } from './header.component';
 import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
@@ -38,6 +40,8 @@ describe('HeaderComponent', () => {
       { provide: AuthenticationService, useValue: authMock },
       { provide: NotificationsService, useValue: notificationsMock },
       provideRouter([]),
+      provideHttpClient(),
+      provideHttpClientTesting(),
     ],
     imports: [HeaderComponent],
   }).compileComponents();

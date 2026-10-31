@@ -14,12 +14,16 @@ export interface ToastData {
       @if (data.type === 'success') {
         <img src="assets/svg/check-circle.svg" alt="" class="toast-icon" />
       }
-      @if (data.title) {
-        <strong class="toast-title">{{ data.title }}</strong>
-      }
-      <span class="toast-message">{{ data.message }}</span>
+      <div class="toast-text">
+        @if (data.title && data.type !== 'success') {
+          <strong class="toast-title">{{ data.title }}</strong>
+        }
+        <span class="toast-message" [class.toast-message--success]="data.type === 'success'">{{ data.message }}</span>
+      </div>
     </div>
-    <button class="toast-close" (click)="snackBarRef.dismiss()">✕</button>
+    <button type="button" class="toast-close" aria-label="Close" (click)="snackBarRef.dismiss()">
+      <img src="assets/svg/close.svg" alt="" width="24" height="24" />
+    </button>
   `,
   styleUrl: './toast.component.scss',
 })

@@ -151,14 +151,17 @@ describe('ReservationInviteModalComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/reservations']);
   });
 
-  it('closes and navigates to the menu on Make Pre-Order', () => {
+  it('opens the menu in pre-order mode for this reservation on Make Pre-Order', () => {
     render(BASE_RESERVATION);
     spyOn(component.closed, 'emit');
 
     element.querySelector<HTMLButtonElement>('.pre-order-btn')!.click();
 
     expect(component.closed.emit).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/menu']);
+    const [commands, extras] = (router.navigate as jasmine.Spy).calls.mostRecent().args as [string[], { queryParams?: Record<string, string> }];
+    expect(commands).toEqual(['/menu']);
+    expect(extras?.queryParams?.['preOrder']).toBe('true');
+    expect(extras?.queryParams?.['reservationId']).toBe(BASE_RESERVATION.id);
   });
 
   describe('mode="invite" (Guest Invite link)', () => {
@@ -173,7 +176,7 @@ describe('ReservationInviteModalComponent', () => {
       const text = element.textContent ?? '';
       expect(text).toContain('Guest Invite link');
       expect(text).not.toContain('Reservation Confirmed');
-      expect(text).toContain('Share this link with your guests so they can place their pre-orders.');
+      expect(text).toContain('Share this link with your guests so they can place their pre-orders');
       expect(text).toContain('Copy this link, then paste it into a message to your guests.');
     });
 

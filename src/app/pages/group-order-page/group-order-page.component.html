@@ -60,7 +60,12 @@
 
     <div class="body">
 
-    @if (pendingCount() > 0 && !isSent()) {
+    @if (viewMode() && !isSent()) {
+      <p class="notice notice--locked" role="status">
+        <img src="assets/svg/bell-regular.svg" alt="" width="20" height="20" />
+        <span>Less than 30 minutes before the reservation time. No changes can be applied.</span>
+      </p>
+    } @else if (pendingCount() > 0 && !isSent()) {
       <p class="notice" role="status">
         <img src="assets/svg/bell-regular.svg" alt="" width="20" height="20" />
         <span>
@@ -86,7 +91,7 @@
           <app-participant-card
             [participant]="person"
             [isMe]="person.id === ownerSessionId()"
-            [canRemove]="person.type === 'Guest' && !isSent()"
+            [canRemove]="person.type === 'Guest' && !isSent() && !viewMode()"
             [canRemind]="canRemind() && person.type === 'Guest' && !person.isSubmitted"
             [reminding]="remindingTarget() === person.id || allReminding()"
             (removeClick)="askRemoveGuest($event)"
@@ -123,7 +128,7 @@
 
       @if (isSent()) {
         <p class="sent-note">Your pre-order has been sent to the restaurant</p>
-      } @else {
+      } @else if (!viewMode()) {
         <button
           type="button"
           class="button button--primary button--extra-large button--full-width"
@@ -137,7 +142,7 @@
   }
 
   @if (submitDialogOpen()) {
-    <app-modal title="Send pre-order to the restaurant?" width="480px" (closed)="closeSubmitDialog()">
+    <app-modal title="Send pre-order to the restaurant?" width="520px" (closed)="closeSubmitDialog()">
       <p class="dialog-text">
         {{ consolidated().items.length }} {{ consolidated().items.length === 1 ? 'dish' : 'dishes' }} for
         {{ consolidated().total | currency }} will be sent as one shared order. Carts that haven’t been submitted
@@ -160,7 +165,7 @@
   }
 
   @if (guestToRemove(); as guest) {
-    <app-modal title="Remove Guest" width="480px" (closed)="cancelRemoveGuest()">
+    <app-modal title="Remove Guest" width="520px" (closed)="cancelRemoveGuest()">
       <p class="dialog-text">
         Are you sure you want to remove <strong>{{ guest.name }}</strong> and their pre-order from this reservation?
         This action cannot be undone.

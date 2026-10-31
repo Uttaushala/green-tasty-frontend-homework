@@ -38,4 +38,44 @@ describe('DishCardComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('opens the full view on card click even in pre-order mode', () => {
+    fixture.componentRef.setInput('preOrderEnabled', true);
+    fixture.detectChanges();
+    spyOn(component.dishClicked, 'emit');
+
+    component.onCardClicked();
+
+    expect(component.dishClicked.emit).toHaveBeenCalled();
+  });
+
+  it('pre-order button does not open the full view', () => {
+    spyOn(component.dishClicked, 'emit');
+    spyOn(component.preOrderClicked, 'emit');
+    const event = new Event('click');
+
+    component.onPreOrderClicked(event);
+
+    expect(component.preOrderClicked.emit).toHaveBeenCalled();
+    expect(component.dishClicked.emit).not.toHaveBeenCalled();
+  });
+
+  it('shows the Sold Out badge for an unavailable dish', () => {
+    fixture.componentRef.setInput('dish', { ...dish, state: DishState.OutOfStock });
+    fixture.detectChanges();
+
+    const badge = (fixture.nativeElement as HTMLElement).querySelector('.status-badge');
+
+    expect(badge?.textContent?.trim()).toBe('Sold Out');
+  });
+
+  it('does not open the full view for an unavailable dish', () => {
+    fixture.componentRef.setInput('dish', { ...dish, state: DishState.OnStop });
+    fixture.detectChanges();
+    spyOn(component.dishClicked, 'emit');
+
+    component.onCardClicked();
+
+    expect(component.dishClicked.emit).not.toHaveBeenCalled();
+  });
 });

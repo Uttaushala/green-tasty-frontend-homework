@@ -48,10 +48,10 @@ describe('Практичне · картка учасника', () => {
       expect(render(OWNER).textContent).toContain('No dishes yet');
     });
 
-    it('фото страви має розмір 40×40', () => {
+    it('фото страви має розмір 48×48', () => {
       const img = render(OLENA).querySelector('img');
-      expect(img?.getAttribute('width')).toBe('40');
-      expect(img?.getAttribute('height')).toBe('40');
+      expect(img?.getAttribute('width')).toBe('48');
+      expect(img?.getAttribute('height')).toBe('48');
     });
   });
 

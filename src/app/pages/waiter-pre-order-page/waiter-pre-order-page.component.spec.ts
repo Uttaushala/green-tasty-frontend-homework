@@ -1,23 +1,30 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { WaiterPreOrderPageComponent } from './waiter-pre-order-page.component';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
+
 import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
+import { WaiterPreOrderPageComponent } from './waiter-pre-order-page.component';
 
 describe('WaiterPreOrderPageComponent', () => {
-  let component: WaiterPreOrderPageComponent;
   let fixture: ComponentFixture<WaiterPreOrderPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      providers: [{ provide: API_BASE_URL, useValue: 'https://test.api' }],
       imports: [WaiterPreOrderPageComponent],
+      providers: [
+        { provide: API_BASE_URL, useValue: 'https://test.api' },
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(WaiterPreOrderPageComponent);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('creates the page', () => {
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });
