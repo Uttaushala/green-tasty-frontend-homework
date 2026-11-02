@@ -1,10 +1,11 @@
+import { PricePipe } from '@app/shared/pipes/price.pipe';
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-dish-select-card',
-  imports: [CommonModule],
+  imports: [PricePipe, CommonModule],
   templateUrl: './dish-select-card.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dish-select-card.component.scss',

@@ -2,7 +2,7 @@
   @if (isInviteMode()) {
     <p class="subtitle">Share this link with your guests so they can place their pre-orders</p>
   }
-  <dl class="info">
+  <dl class="info" [class.info--compact]="isInviteMode()">
     <div class="info-row">
       <dt>Location{{ isInviteMode() ? ':' : '' }}</dt>
       <dd>{{ reservation().locationAddress }}</dd>
@@ -53,10 +53,10 @@
 
   @if (!isInviteMode()) {
   <div modal-actions class="actions">
-    <button type="button" class="button button--secondary button--full-width view-reservation-btn" (click)="onViewReservation()">
+    <button type="button" class="button button--secondary button--extra-large button--full-width view-reservation-btn" (click)="onViewReservation()">
       View Reservation
     </button>
-    <button type="button" class="button button--primary button--full-width pre-order-btn" (click)="onMakePreOrder()">Make Pre-Order</button>
+    <button type="button" class="button button--primary button--extra-large button--full-width pre-order-btn" (click)="onMakePreOrder()">Make Pre-Order</button>
   </div>
   }
 </app-modal>

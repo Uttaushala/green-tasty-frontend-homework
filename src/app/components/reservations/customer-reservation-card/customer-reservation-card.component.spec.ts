@@ -119,6 +119,50 @@ describe('CustomerReservationCardComponent', () => {
     expect(host.textContent).toContain('1 Guest');
   });
 
+  it('hides the invite row and paints the counter red once every seat has a pre-order', async () => {
+    const host = render(buildReservation({ hasSubmittedPreOrder: true }), { submitted: 4, guestsJoined: 3 });
+    await settle();
+
+    expect(host.querySelector('.share')).toBeNull();
+    expect(host.querySelector('.progress strong')?.classList).toContain('over');
+  });
+
+  it('keeps the invite row and a neutral counter while seats are free', async () => {
+    const host = render(buildReservation(), { submitted: 3, guestsJoined: 2 });
+    await settle();
+
+    expect(host.querySelector('.share')).not.toBeNull();
+    expect(host.querySelector('.progress strong')?.classList).not.toContain('over');
+  });
+
+  it('does not paint a full counter red after the visit', async () => {
+    const host = render(buildReservation({ status: ReservationStatusCustomer.Finished }), {
+      submitted: 4,
+      guestsJoined: 3,
+    });
+    await settle();
+
+    expect(host.querySelector('.progress strong')?.classList).not.toContain('over');
+  });
+
+  it('keeps the pre-order counter on a cancelled group reservation', async () => {
+    const host = render(buildReservation({ status: ReservationStatusCustomer.Cancelled }), {
+      submitted: 1,
+      guestsJoined: 1,
+    });
+    await settle();
+
+    expect(host.querySelector('.progress')?.textContent?.replace(/\s/g, '')).toBe('1/4');
+  });
+
+  it('puts the guests next to the date when there is no counter', async () => {
+    const host = render(buildReservation({ guestCount: 1 }), null);
+    await settle();
+
+    const items = Array.from(host.querySelectorAll('.details .item')).map((item) => item.textContent?.trim());
+    expect(items[1]).toBe('1 Guest');
+  });
+
   it('shows the orange dot only when more guests joined than were seen', async () => {
     const host = render(buildReservation(), { submitted: 1, guestsJoined: 2 });
     await settle();

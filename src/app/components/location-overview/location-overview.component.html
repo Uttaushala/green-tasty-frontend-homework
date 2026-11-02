@@ -17,12 +17,12 @@
           <p class="restaurant-address">{{ location?.address }}</p>
         </div>
         <div class="rating">
-          <img src="assets/svg/star-mini.svg" alt="star icon" />
           <span>{{ location?.rating | number: '1.2-2' }} / 5</span>
+          <img src="assets/svg/star-mini.svg" alt="star icon" />
         </div>
       </div>
 
-      <b>Atmosphere</b>
+      <p class="atmosphere-title">Atmosphere</p>
       <p class="location-description">
         {{ location?.description }}
       </p>
@@ -32,7 +32,7 @@
           class="button button--primary button--extra-large"
           [routerLink]="['/tables']"
           [queryParams]="{ locationId: $safeNavigationMigration(location?.id) }"
-          >Book a Table</a
+          >Book a table</a
         >
         <a class="button button--secondary button--extra-large" [routerLink]="['/menu']">View menu</a>
       </div>
@@ -64,7 +64,7 @@
         <span>Sort by:</span>
         <select (change)="onSortChange($event.target)">
           @for (sort of reviewSortValues; track sort) {
-            <option [value]="sort">
+            <option [value]="sort" [selected]="sort === selectedSort">
               {{ reviewSortLabels[sort] }}
             </option>
           }
@@ -119,10 +119,10 @@
       <div class="pagination">
         <button
           class="pagination-arrow"
-          [style.visibility]="visiblePageNumbers[0] > 1 ? 'visible' : 'hidden'"
+          [class.is-hidden]="visiblePageNumbers[0] <= 1"
           (click)="goToPage(visiblePageNumbers[0] - 1)"
         >
-          <span>&lt;&lt;</span>
+          <span>&laquo;</span>
         </button>
 
         @for (page of visiblePageNumbers; track page) {
@@ -133,10 +133,10 @@
 
         <button
           class="pagination-arrow"
-          [style.visibility]="visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages ? 'visible' : 'hidden'"
+          [class.is-hidden]="visiblePageNumbers[visiblePageNumbers.length - 1] >= totalPages"
           (click)="goToPage(visiblePageNumbers[visiblePageNumbers.length - 1] + 1)"
         >
-          <span>&gt;&gt;</span>
+          <span>&raquo;</span>
         </button>
       </div>
     }

@@ -28,20 +28,21 @@
     }
   </ul>
 } @else {
-  <div class="reservation-empty">
+  <div class="reservation-empty reservation-empty--none">
     <img
-      src="assets/svg/empty-reservations.svg"
+      class="reservation-empty__image"
+      src="assets/img/empty-reservations.png"
       alt=""
       aria-hidden="true"
+      width="439"
+      height="423"
     />
 
-    <p>It looks like you don't have any reservations.</p>
+    <h3 class="reservation-empty__title">No Reservations</h3>
+    <p class="reservation-empty__text">Looks like you haven’t made any reservations yet.</p>
 
-    <a
-      class="button button--primary button--large"
-      routerLink="/tables"
-    >
-      Book a table
+    <a class="button button--tertiary button--large reservation-empty__link" routerLink="/tables">
+      Book a Table
     </a>
   </div>
 }

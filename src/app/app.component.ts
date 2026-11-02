@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import {} from './auth/components/register/register.component';
 
 @Component({
   selector: 'app-root',

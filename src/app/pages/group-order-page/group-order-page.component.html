@@ -39,10 +39,11 @@
         </li>
         <li class="meta-item">
           <img src="assets/svg/people-green.svg" alt="" width="16" height="16" />
-          <span>{{ participants().length }} of {{ inv.MaxGuestCount }} guests</span>
+          <span>{{ inv.MaxGuestCount }} {{ inv.MaxGuestCount === 1 ? 'Guest' : 'Guests' }}</span>
         </li>
       </ul>
 
+      <!-- Live-sync line (our addition to the Figma frame: the window refreshes itself every few seconds). -->
       <div class="sync">
         @if (syncFailed()) {
           <p class="sync-text sync-text--failed" role="status">
@@ -92,6 +93,8 @@
             [participant]="person"
             [isMe]="person.id === ownerSessionId()"
             [canRemove]="person.type === 'Guest' && !isSent() && !viewMode()"
+            [canEdit]="person.id === ownerSessionId() && !viewMode()"
+            (editClick)="editMyPreOrder()"
             [canRemind]="canRemind() && person.type === 'Guest' && !person.isSubmitted"
             [reminding]="remindingTarget() === person.id || allReminding()"
             (removeClick)="askRemoveGuest($event)"
@@ -108,7 +111,7 @@
           @for (item of consolidated().items; track item.dish.id) {
             <li class="consolidated-item">
               <span>{{ item.dish.name }} × {{ item.quantity }}</span>
-              <span>{{ item.dish.price * item.quantity | currency }}</span>
+              <span>{{ item.dish.price * item.quantity | price }}</span>
             </li>
           }
         </ul>
@@ -123,12 +126,11 @@
     <footer class="footer">
       <p class="grand-total">
         <span class="grand-total-label">Grand Total</span>
-        <span class="grand-total-value">{{ consolidated().total | currency }}</span>
+        <span class="grand-total-value" [class.grand-total-value--muted]="viewMode()">{{ consolidated().total | price }}</span>
       </p>
 
-      @if (isSent()) {
-        <p class="sent-note">Your pre-order has been sent to the restaurant</p>
-      } @else if (!viewMode()) {
+      @if (!viewMode()) {
+        <!-- Figma: once sent, the button stays in place but disabled. -->
         <button
           type="button"
           class="button button--primary button--extra-large button--full-width"
@@ -145,7 +147,7 @@
     <app-modal title="Send pre-order to the restaurant?" width="520px" (closed)="closeSubmitDialog()">
       <p class="dialog-text">
         {{ consolidated().items.length }} {{ consolidated().items.length === 1 ? 'dish' : 'dishes' }} for
-        {{ consolidated().total | currency }} will be sent as one shared order. Carts that haven’t been submitted
+        {{ consolidated().total | price }} will be sent as one shared order. Carts that haven’t been submitted
         will not be included. This action cannot be undone.
       </p>
       <div modal-actions class="dialog-actions">

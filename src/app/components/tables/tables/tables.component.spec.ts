@@ -11,6 +11,8 @@ import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
 import { LocationResponse } from '@app/models/locations/location-response.model';
 import { Table } from '@app/models/tables/table.model';
 import { TablesComponent } from './tables.component';
+import { AuthenticationService } from '@app/auth/services/authentication.service';
+import { Router } from '@angular/router';
 
 const CREATED_RESERVATION: Reservation = {
   id: 'res-1',
@@ -392,8 +394,19 @@ describe('ReservationsPageComponent', () => {
     const timeRange = { start: '2026-10-17T12:00:00Z', end: '2026-10-17T14:00:00Z' };
 
     beforeEach(() => {
+      spyOn(TestBed.inject(AuthenticationService), 'getToken').and.returnValue('id-token');
       component.lastAppliedFilter = { location: null, date: 'Oct 17, 2026', time: '12:00', guests: 2 };
       component.selectedFilter.date = 'Oct 17, 2026';
+    });
+
+    it('sends a signed-out guest to Sign In instead of opening the review', () => {
+      (TestBed.inject(AuthenticationService).getToken as jasmine.Spy).and.returnValue(undefined);
+      const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+      component.onTimeSlotsClick(table, timeRange);
+
+      expect(navigate).toHaveBeenCalledWith(['/login']);
+      expect(component.showReviewModal).toBeFalse();
     });
 
     it('opens the review modal instead of make-reservation when a time slot is chosen', () => {

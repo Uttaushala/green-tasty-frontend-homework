@@ -83,11 +83,14 @@ export class ReservationService {
     return this.http.get<Reservation[]>(url);
   }
 
+  /** `silent` keeps a missing feedback (404) from popping an error toast, e.g. on the reservations list. */
   getReservationFeedback(
-    reservationId: string
+    reservationId: string,
+    silent = false
   ): Observable<FeedbackReservationResponseItem | null> {
     return this.http.get<FeedbackReservationResponseItem>(
-      `${this.baseUrl}/reservations/${reservationId}/feedback`
+      `${this.baseUrl}/reservations/${reservationId}/feedback`,
+      { context: new HttpContext().set(SKIP_ERROR_TOAST, silent) }
     );
   }
 

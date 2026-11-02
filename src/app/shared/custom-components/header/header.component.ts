@@ -45,6 +45,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   showCart = signal(false);
   cartCount = signal(0);
   isMenuRoute = signal(false);
+  // Figma: the cart icon shows while ordering from the menu or when the cart has dishes.
+  isMenuPage = signal(false);
 
   private pollingSubscription?: Subscription;
   private userSubscription?: Subscription;
@@ -59,6 +61,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   get isGuestPreorderRoute(): boolean {
     return this.router.url.startsWith('/join/');
+  }
+
+  readonly guestCartCount = computed(() => this.guestPreorderStore.cartCount());
+
+  openGuestCart(): void {
+    this.guestPreorderStore.openCart();
   }
 
   get isSubmittedGuestPreorder(): boolean {
@@ -84,14 +92,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.user.set(u);
       this.refreshCartCount();
     });
-    this.isMenuRoute.set(this.router.url.startsWith('/menu'));
+    this.isMenuRoute.set(this.isMainSectionRoute(this.router.url));
+    this.isMenuPage.set(this.router.url.startsWith('/menu'));
     this.ordersSubscription = this.preOrdersService.changes$.subscribe(() => this.refreshCartCount());
     this.routerSubscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
-        this.isMenuRoute.set(this.router.url.startsWith('/menu'));
+        this.isMenuRoute.set(this.isMainSectionRoute(this.router.url));
+        this.isMenuPage.set(this.router.url.startsWith('/menu'));
         this.refreshCartCount();
       });
+  }
+
+  // "Main page" stays highlighted on the pages opened from it (menu, location profile, sign-in modal).
+  private isMainSectionRoute(url: string): boolean {
+    return url.startsWith('/menu') || url.startsWith('/locations/') || url.startsWith('/login') || url.startsWith('/signup');
   }
 
   ngOnDestroy() {

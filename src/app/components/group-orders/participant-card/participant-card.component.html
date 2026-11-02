@@ -2,9 +2,8 @@
   <header class="card-header">
     <h2 class="title">{{ title() }}</h2>
 
-    @if (participant().isSubmitted) {
-      <span class="chip chip--submitted">Submitted</span>
-    } @else {
+    <!-- Figma shows no chip for a submitted cart; "Still choosing" marks who can be reminded. -->
+    @if (!participant().isSubmitted) {
       <span class="chip chip--pending">Still choosing</span>
     }
 
@@ -19,6 +18,10 @@
         <img src="assets/svg/bell-regular.svg" alt="" width="16" height="16" />
         {{ reminding() ? 'Sending…' : 'Remind' }}
       </button>
+    }
+
+    @if (canEdit()) {
+      <button type="button" class="remove" (click)="editClick.emit()">Edit my Pre-Order</button>
     }
 
     @if (canRemove()) {
@@ -44,7 +47,7 @@
           }
           <p class="name">{{ item.dish.name }}</p>
           <p class="qty">Qty: {{ item.quantity }}</p>
-          <p class="price">{{ item.dish.price * item.quantity | currency }}</p>
+          <p class="price">{{ item.dish.price * item.quantity | price }}</p>
         </li>
       }
     </ul>
@@ -54,6 +57,6 @@
 
   <p class="subtotal">
     <span>Subtotal</span>
-    <span>{{ participant().total | currency }}</span>
+    <span>{{ participant().total | price }}</span>
   </p>
 </article>

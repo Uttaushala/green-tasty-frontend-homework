@@ -7,7 +7,6 @@ import { interval, map } from 'rxjs';
 import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
 import { GuestMenuDish } from '@app/services/guest-sessions/guest-sessions.service';
 import { DishCardComponent } from '@app/shared/custom-components/dish-card/dish-card.component';
-import { MainCoverImageComponent } from '@app/shared/custom-components/main-cover-image/main-cover-image.component';
 import { ToastService } from '@app/services/toast/toast.service';
 import { GuestPreorderStore } from './state/guest-preorder.store';
 
@@ -23,7 +22,6 @@ import { GuestPreorderSubmittedComponent } from './ui/guest-preorder-submitted/g
     imports: [
         RouterLink,
         DishCardComponent,
-        MainCoverImageComponent,
         GuestNameModalComponent,
         GuestCartDrawerComponent,
         GuestPreorderSubmittedComponent
@@ -37,8 +35,9 @@ export class GuestPreOrderPageComponent {
     private readonly toast = inject(ToastService);
 
     readonly store = inject(GuestPreorderStore);
-    readonly isCartOpen = signal(false);
     readonly selectedCategory = signal<string | null>(null);
+    /** Figma: one category tab is always active, the first one by default. */
+    readonly activeCategory = computed(() => this.selectedCategory() ?? this.store.menuCategories()[0] ?? null);
     readonly selectedSort = signal<'recommended' | 'price-asc' | 'price-desc'>('recommended');
 
     readonly categoryOptions = computed(() =>
@@ -46,7 +45,7 @@ export class GuestPreOrderPageComponent {
     );
 
     readonly visibleDishes = computed(() => {
-        const selectedCategory = this.selectedCategory();
+        const selectedCategory = this.activeCategory();
         const dishes = Object.entries(this.store.menuByCategory())
             .filter(([category]) => !selectedCategory || category === selectedCategory)
             .flatMap(([category, categoryDishes]) =>
@@ -94,8 +93,8 @@ export class GuestPreOrderPageComponent {
         });
     }
 
-    openCart() { this.isCartOpen.set(true); }
-    closeCart() { this.isCartOpen.set(false); }
+    openCart() { this.store.openCart(); }
+    closeCart() { this.store.closeCart(); }
 
     retryInviteLoad(): void {
         const token = this.token();
@@ -154,4 +153,4 @@ export class GuestPreOrderPageComponent {
     noop(): void {
         // Guest name modal is mandatory; ignore close attempts (Esc/X)
     }
-}
+}

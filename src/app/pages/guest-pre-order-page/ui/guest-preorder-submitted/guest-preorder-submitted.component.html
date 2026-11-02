@@ -47,14 +47,14 @@
             @for (it of items(); track it.dishId) {
             <div class="item-row">
                 <span class="item-title">{{ it.title }} × {{ it.qty }}</span>
-                <span class="item-price">{{ it.price * it.qty | currency: '$' }}</span>
+                <span class="item-price">{{ it.price * it.qty | price }}</span>
             </div>
             }
         </div>
 
         <div class="total">
             <span class="total-label">Total</span>
-            <strong class="total-value">{{ total() | currency: '$' }}</strong>
+            <strong class="total-value">{{ total() | price }}</strong>
         </div>
 
         <app-custom-button variant="secondary" fullWidth (click)="createNew.emit()">

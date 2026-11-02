@@ -1,12 +1,21 @@
 @use 'app/shared/styles/abstracts/colors' as color;
 
+// Figma: the reservations page sits on the warm yellow background.
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: color.$bg-yellow;
+}
+
 .subheading {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
 
-  padding: 16px 40px;
+  padding: 16px 40px 17px;
 
   background-color: color.$bg-green;
 
@@ -27,12 +36,12 @@
 .support {
   display: flex;
   align-items: center;
-  gap: 8px;
   box-sizing: border-box;
   width: 428px;
   max-width: 100%;
   margin: 0;
-  padding: 4px 8px;
+  padding: 9px 14px 8px 14px;
+  gap: 14px;
 
   font-size: 12px;
   line-height: 16px;
@@ -52,11 +61,11 @@
   grid-template-columns: repeat(auto-fill, minmax(17.5rem, 436px));
   grid-auto-rows: auto;
   align-items: start;
-  justify-content: center;
+  justify-content: start;
   gap: 24px;
 
   margin: 0;
-  padding: 24px 40px;
+  padding: 23px 40px 40px;
 
   list-style: none;
 
@@ -75,6 +84,13 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 12px;
+  width: 100%;
+
+  // Figma: 44px buttons with 24px side padding.
+  .button {
+    min-height: 44px;
+    padding: 0 23px;
+  }
 }
 
 .danger {
@@ -103,5 +119,41 @@
       width: 88px;
       height: 88px;
     }
+  }
+}
+
+// Figma "No reservations": the illustration's lamp cords tuck under the greeting bar.
+.reservation-empty--none {
+  gap: 0;
+  margin-top: -46px;
+  padding: 0 1.5rem 2.5rem;
+
+  .reservation-empty__image {
+    width: 439px;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .reservation-empty__title {
+    margin: 68px 0 0;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 32px;
+    color: color.$neutral-900;
+  }
+
+  .reservation-empty__text {
+    margin: 12px 0 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: color.$neutral-600;
+  }
+
+  .reservation-empty__link {
+    margin-top: 21px;
+  }
+
+  @media (max-width: 540px) {
+    margin-top: 0;
   }
 }

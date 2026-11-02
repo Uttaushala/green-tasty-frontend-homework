@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, output, s
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { first } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { AuthenticationService } from '@app/auth/services/authentication.service';
 import { LoginDraftService } from '@app/auth/services/login-draft.service';
@@ -52,6 +53,13 @@ export class LoginFormComponent {
     readonly email = computed(() => this.loginForm.get('email'));
     readonly password = computed(() => this.loginForm.get('password'));
 
+    // Design: the link reads "Forgot your password?" once the password field shows an error.
+    hasPasswordProblem(): boolean {
+        const control = this.password();
+        const requiredShown = !!control?.errors?.['required'] && (control.touched || control.dirty);
+        return requiredShown || this.unsuccessfulLogin() || this.isAccountLocked();
+    }
+
     constructor() {
         // restore draft once
         const draft = this.draftService.draft();
@@ -62,6 +70,14 @@ export class LoginFormComponent {
             // subscribe-like effect: whenever form changes, update service draft
             const v = this.loginForm.value;
             this.draftService.set({ email: v.email ?? '', password: v.password ?? ''}); 
+        });
+
+        // Design: after a failed attempt Sign In stays disabled until the credentials change.
+        this.loginForm.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+            if (this.unsuccessfulLogin() && !this.isAccountLocked()) {
+                this.unsuccessfulLogin.set(false);
+                this.errorMessage.set(null);
+            }
         });
     }
 

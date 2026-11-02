@@ -1,10 +1,10 @@
-import { CurrencyPipe } from '@angular/common';
+import { PricePipe } from '@app/shared/pipes/price.pipe';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { Participant } from '@app/models/group-orders/participant.model';
 
 @Component({
   selector: 'app-participant-card',
-  imports: [CurrencyPipe],
+  imports: [PricePipe],
   templateUrl: './participant-card.component.html',
   styleUrl: './participant-card.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -21,6 +21,9 @@ export class ParticipantCardComponent {
   /** Нагадування цьому гостю щойно відправляється. */
   readonly reminding = input(false);
 
+  /** Owner's own card: "Edit my Pre-Order" link. */
+  readonly canEdit = input(false);
+  readonly editClick = output<void>();
   readonly removeClick = output<Participant>();
   readonly remindClick = output<Participant>();
 

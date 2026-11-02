@@ -394,3 +394,140 @@
   line-height: 32px;
   text-align: center;
 }
+
+.atmosphere-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+}
+
+// Desktop layout per Figma "Restaurant Profile" (1440 frame):
+// photo 997px wide, 587px high; info card 580px wide, 115px from the top, 40px from the right.
+@media (min-width: 769px) {
+  .location-container {
+    background-color: color.$bg-yellow;
+    padding-bottom: 1.5rem;
+  }
+
+  .location-header {
+    gap: 0;
+    min-height: 0;
+    margin-bottom: 3.75rem;
+  }
+
+  .restaurant-image-wrap {
+    width: 69.236%;
+    aspect-ratio: 997 / 587;
+  }
+
+  .restaurant-info {
+    top: 7.1875rem;
+    right: 2.5rem;
+    box-sizing: border-box;
+    width: 36.25rem;
+    border-radius: 1rem;
+  }
+
+  .restaurant-info__address-rating {
+    align-items: center;
+    margin-bottom: 1.5625rem;
+  }
+
+  .restaurant-address-wrap {
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .restaurant-address {
+    font-weight: 500;
+    line-height: 2.5rem;
+  }
+
+  .rating {
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+  }
+
+  .restaurant-info .location-description {
+    margin: 0.6875rem 0 0;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+  }
+
+  .restaurant-info__actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .reviews-section h2 {
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 2.5rem;
+  }
+
+  .reviews-section__options {
+    align-items: center;
+    margin-bottom: 1.375rem;
+  }
+
+  .reviews-section__options-sorting {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.875rem;
+
+    span {
+      margin-right: 0;
+    }
+
+    select {
+      box-sizing: border-box;
+      width: 12.875rem;
+      height: 2.75rem;
+      padding: 0.625rem 2.75rem 0.625rem 1rem;
+      line-height: 1.5rem;
+      border: 1px solid color.$green-600;
+      border-radius: 0.5rem;
+      background-position: right 1rem center;
+      background-size: 1.5rem 1.5rem;
+    }
+  }
+
+  .reviews-row {
+    margin-bottom: 0.25rem;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  // Design: 24px page items, 12px apart, the current page marked by a 2px green line;
+  // the arrows only take space when there is somewhere to go.
+  .pagination {
+    gap: 0.75rem;
+    margin: 0 auto 1rem;
+
+    button,
+    button:first-child,
+    button:last-child {
+      width: 1.5rem;
+      margin: 0;
+      padding: 0;
+      font-size: 0.875rem;
+      line-height: 1.5rem;
+      color: color.$neutral-900;
+    }
+
+    button.active {
+      font-weight: 400;
+      border-bottom: 2px solid color.$green-600;
+    }
+
+    .pagination-arrow.is-hidden {
+      display: none;
+    }
+  }
+}

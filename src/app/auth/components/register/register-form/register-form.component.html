@@ -1,0 +1,130 @@
+<form class="form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <div class="title">Create an Account</div>
+
+  @if (serverError()) {
+    <div class="banner-error" role="alert">{{ serverError() }}</div>
+  }
+
+  <div class="row">
+    <label class="field">
+      <span class="label">First Name</span>
+      <input
+        class="input"
+        type="text"
+        formControlName="firstName"
+        placeholder="e.g. Jonson"
+        autocomplete="given-name"
+        [class.input-error]="showError(form.controls.firstName)"
+      />
+      @if (showError(form.controls.firstName)) {
+        <span class="field-error">
+          {{ form.controls.firstName.errors?.['required'] ? 'First name is required.' : 'Use letters only (A–Z), - or ’' }}
+        </span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="label">Last Name</span>
+      <input
+        class="input"
+        type="text"
+        formControlName="lastName"
+        placeholder="e.g. Doe"
+        autocomplete="family-name"
+        [class.input-error]="showError(form.controls.lastName)"
+      />
+      @if (showError(form.controls.lastName)) {
+        <span class="field-error">
+          {{ form.controls.lastName.errors?.['required'] ? 'Last name is required.' : 'Use letters only (A–Z), - or ’' }}
+        </span>
+      }
+    </label>
+  </div>
+
+  <label class="field">
+    <span class="label">Email</span>
+    <input
+      class="input"
+      type="email"
+      formControlName="email"
+      placeholder="e.g. username@domain.com"
+      autocomplete="email"
+      [class.input-error]="showError(form.controls.email)"
+    />
+    @if (showError(form.controls.email)) {
+      <span class="field-error">
+        {{
+          form.controls.email.errors?.['required']
+            ? 'Email address is required. Please enter your email to continue.'
+            : 'Invalid email address. Please ensure it follows the format: username@domain.com'
+        }}
+      </span>
+    }
+  </label>
+
+  <label class="field">
+    <span class="label-row">
+      <span class="label">Password</span>
+      @if (hasPassword()) {
+        <span class="strength" [class.strength--strong]="isStrong()">{{ isStrong() ? 'Strong' : 'Weak' }}</span>
+      }
+    </span>
+    <span class="password-wrapper">
+      <input
+        class="input"
+        [type]="showPassword() ? 'text' : 'password'"
+        formControlName="password"
+        autocomplete="new-password"
+        [class.input-error]="hasPassword() && !isStrong() && form.controls.password.touched"
+      />
+      @if (hasPassword()) {
+        <button type="button" class="eye-btn" (click)="togglePassword()" aria-label="Toggle password visibility">
+          <img [src]="showPassword() ? 'assets/svg/eye.svg' : 'assets/svg/eye_closed.svg'" alt="" />
+        </button>
+      }
+    </span>
+    <ul class="rules" [class.rules--touched]="hasPassword()">
+      <li [class.rule--ok]="lengthValid()" [class.rule--bad]="hasPassword() && !lengthValid()">8–16 characters</li>
+      <li [class.rule--ok]="charactersValid()" [class.rule--bad]="hasPassword() && !charactersValid()">
+        Includes: uppercase, lowercase, number, symbol
+      </li>
+    </ul>
+  </label>
+
+  <label class="field">
+    <span class="label">Confirm New Password</span>
+    <span class="password-wrapper">
+      <input
+        class="input"
+        [type]="showConfirmPassword() ? 'text' : 'password'"
+        formControlName="confirmPassword"
+        autocomplete="new-password"
+        [class.input-error]="showError(form.controls.confirmPassword)"
+      />
+      @if (hasConfirmPassword()) {
+        <button type="button" class="eye-btn" (click)="toggleConfirmPassword()" aria-label="Toggle password visibility">
+          <img [src]="showConfirmPassword() ? 'assets/svg/eye.svg' : 'assets/svg/eye_closed.svg'" alt="" />
+        </button>
+      }
+    </span>
+    @if (showError(form.controls.confirmPassword)) {
+      <span class="field-error">
+        {{
+          form.controls.confirmPassword.errors?.['passwordMismatch']
+            ? 'Confirm password must match new password.'
+            : 'Please confirm your password.'
+        }}
+      </span>
+    }
+  </label>
+
+  <app-custom-button class="submit" type="submit" fullWidth [disabled]="!canSubmit() || isLoading()">
+    Create an Account
+  </app-custom-button>
+
+  <div class="bottom">
+    <span>Already have an account?</span>
+    <a class="link" routerLink="/login">Sign in</a>
+    <span>instead</span>
+  </div>
+</form>

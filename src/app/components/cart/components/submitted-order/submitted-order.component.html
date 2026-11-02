@@ -38,14 +38,14 @@
     </span>
 
     <span class="body-bold">
-    {{ item.dish.price * item.quantity | currency }}
+    {{ item.dish.price * item.quantity | price }}
     </span>
   </div>
     }
 
     <div class="order-item">
       <span class="body">Total price</span>
-      <h3>{{ totalPrice() | currency }}</h3>
+      <h3>{{ totalPrice() | price }}</h3>
     </div>
   </div>
 

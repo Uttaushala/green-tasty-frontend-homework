@@ -1,3 +1,7 @@
+import { ToastService } from '@app/services/toast/toast.service';
+import { RegisterModalComponent } from '@app/auth/components/register/register-modal/register-modal.component';
+import { DishModalComponent } from '../../components/dish-modal/dish-modal.component';
+import { PricePipe } from '../../shared/pipes/price.pipe';
 import { Component, ChangeDetectionStrategy, OnInit, inject, computed } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -27,7 +31,7 @@ import { LoginModalComponent } from '@app/auth/components/login/login-modal/logi
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterLink, LocationCardComponent, FeedbackWindowComponent, LoginModalComponent, ],
+  imports: [CommonModule, RouterLink, LocationCardComponent, FeedbackWindowComponent, LoginModalComponent, RegisterModalComponent, PricePipe, DishModalComponent],
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [LocationsService, DishesService, ReservationService, UsersService, FeedbacksService],
 })
@@ -49,6 +53,7 @@ export class MainPageComponent implements OnInit {
   private readonly feedbackService = inject(FeedbacksService);
 
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   // signals-first determination of the current URL
   private readonly currentUrl = toSignal(
@@ -63,9 +68,28 @@ export class MainPageComponent implements OnInit {
   // display the modal when URL = /login
   readonly showLoginModal = computed(() => this.currentUrl().startsWith('/login'));
 
+  // display the Create an Account window when URL = /signup
+  readonly showRegisterModal = computed(() => this.currentUrl().startsWith('/signup'));
+
   // closing the modal returns to the main screen
   closeLogin() {
     this.router.navigate(['/main']);
+  }
+
+  // after sign-up the user lands on Sign In with a confirmation toast
+  onRegistered(): void {
+    this.toastService.success('Your account was created successfully. Please sign in with your details.', 'Success');
+    this.router.navigate(['/login']);
+  }
+
+  selectedDish: DishListResponse | null = null;
+
+  openDish(dish: DishListResponse): void {
+    this.selectedDish = dish;
+  }
+
+  closeDish(): void {
+    this.selectedDish = null;
   }
 
   ngOnInit(): void {

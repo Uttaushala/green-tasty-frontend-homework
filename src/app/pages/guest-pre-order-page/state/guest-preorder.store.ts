@@ -50,6 +50,9 @@ export class GuestPreorderStore {
     readonly menuError = signal<string | null>(null);
     readonly cartBusy = signal(false);
     readonly cartError = signal<string | null>(null);
+    /** The cart drawer is opened from the header cart icon (Figma), so its state lives here. */
+    readonly cartOpen = signal(false);
+    readonly cartCount = computed(() => this.cartItems().reduce((sum, item) => sum + item.qty, 0));
 
     readonly menuByCategory = signal<Record<string, GuestMenuDish[]>>({});
     readonly menuCategories = computed(() => Object.keys(this.menuByCategory()));
@@ -73,6 +76,14 @@ export class GuestPreorderStore {
     readonly total = computed(() =>
         this.cartItems().reduce((sum, i) => sum + i.price * i.qty, 0)
     );
+
+    openCart(): void {
+        this.cartOpen.set(true);
+    }
+
+    closeCart(): void {
+        this.cartOpen.set(false);
+    }
 
     constructor() {
         effect(() => {

@@ -523,7 +523,7 @@ export class ReservationDashboardComponent implements OnInit {
           return forkJoin(
             reservations.map((reservation) =>
               this.reservationService
-                .getReservationFeedback(reservation.id)
+                .getReservationFeedback(reservation.id, true)
                 .pipe(
                   catchError((error: HttpErrorResponse) => {
                     if (error.status !== 404) {

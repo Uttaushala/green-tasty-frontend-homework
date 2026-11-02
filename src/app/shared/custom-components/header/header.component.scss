@@ -571,12 +571,12 @@
       position: absolute;
       left: 50%;
       bottom: -1px;
-      gap: 16px;
+      gap: 0;
       transform: translateX(-50%);
     }
 
     .nav-link {
-      padding: 0 24px 12px;
+      padding: 0 24px 10px;
       font-weight: 500;
       line-height: 32px;
       border-bottom: 1px solid color.$neutral-200;
@@ -589,5 +589,29 @@
         }
       }
     }
+
+    // Design: with three tabs (signed-in customer) the tabs sit 16px apart.
+    .nav:has(> .nav-link:nth-of-type(3)) {
+      gap: 16px;
+    }
+
+    // Design: the profile icon sits 40px from the right edge, slightly below the centre line.
+    .header-user-wrapper {
+      margin-right: 16px;
+      transform: translateY(2px);
+    }
+
+    // Design: Sign In in the header is 44px high with 24px side padding.
+    .actions > .button--large {
+      min-height: 44px;
+      padding: 0 23.5px;
+    }
   }
+}
+
+// Guest pre-order: the header carries only the cart (Figma), on every screen size.
+.actions.actions--guest {
+  display: flex;
+  margin-left: auto;
+  margin-right: 16px;
 }

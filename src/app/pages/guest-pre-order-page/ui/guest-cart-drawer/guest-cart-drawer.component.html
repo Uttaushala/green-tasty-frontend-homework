@@ -1,78 +1,115 @@
+<!-- Same drawer as the signed-in cart (Figma "Placing pre-order by guest · Cart"). -->
 @if (open()) {
-    <div class="backdrop">
-        <button type="button" class="backdrop-dismiss" (click)="closed.emit()" aria-label="Close cart"></button>
-        <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="guest-cart-title">
-            <div class="header">
+    <div
+        class="modal-backdrop"
+        tabindex="0"
+        role="button"
+        aria-label="Close cart"
+        (click)="closed.emit()"
+        (keydown.enter)="closed.emit()"
+        (keydown.space)="closed.emit(); $event.preventDefault()"
+    >
+        <div
+            class="cart"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guest-cart-title"
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+        >
+            <div class="cart-header">
                 <h3 id="guest-cart-title">Cart</h3>
-                <button type="button" class="icon-button icon-button--small close" (click)="closed.emit()" aria-label="Close cart">
+                <button type="button" class="icon-button icon-button--small cart-close" (click)="closed.emit()" aria-label="Close cart">
                     <img src="assets/svg/close.svg" alt="" aria-hidden="true" />
                 </button>
             </div>
 
-            @if (items().length === 0) {
-                <div class="empty">
-                    <img src="assets/svg/cart-empty-preorder.svg" alt="" aria-hidden="true" />
-                    <h3 class="empty-title">Your cart is empty</h3>
-                    <span class="empty-text">Looks like you haven't added any dishes to your cart yet</span>
-                    <button type="button" class="button button--tertiary button--small go" (click)="goToMenu.emit()">Go to Menu</button>
-                </div>
-            } @else {
-                <div class="list">
-                    @for (it of items(); track it.dishId) {
-                        <div class="item">
-                            <img class="img" [src]="it.imageUrl" alt="" />
-
-                            <div class="info">
-                                <div class="name">{{ it.title }}</div>
-                                <div class="sub">Expected ready time - 10 minutes</div>
-
-                                <div class="qty">
-                                    <button type="button" class="qty-btn" [disabled]="busy()" (click)="dec.emit(it.dishId)" aria-label="Decrease quantity">
-                                        -
-                                    </button>
-                                    <span class="qty-value">{{ it.qty }}</span>
-                                    <button type="button" class="qty-btn" [disabled]="busy()" (click)="inc.emit(it.dishId)" aria-label="Increase quantity">
-                                        +
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="actions">
-                                <button 
-                                    type="button"
-                                    class="trash"
-                                    [disabled]="busy()"
-                                    (click)="remove.emit(it.dishId)"
-                                    aria-label="Remove item"
-                                >
-                                    <img src="assets/svg/trash.svg" alt="" />
-                            </button>
-
-                            <div class="price">{{ it.price | currency: '$' }}</div>
-                            </div>
-                        </div>
-                    }
-                </div>
-
-                <div class="footer">
-                    @if (error()) {
-                        <p class="cart-error" role="alert">{{ error() }}</p>
-                    }
-                    <div class="total">
-                        <span class="total-label">Grand Total</span>
-                        <span class="total-value">{{ total() | currency: '$' }}</span>
+            <div class="cart-body">
+                @if (items().length === 0) {
+                    <div class="empty">
+                        <img src="assets/svg/cart-empty-preorder.svg" alt="" aria-hidden="true" />
+                        <h3 class="empty-title">Your cart is empty</h3>
+                        <span class="empty-text">Looks like you haven't added any dishes to your cart yet</span>
+                        <button type="button" class="button button--tertiary button--small go" (click)="goToMenu.emit()">Go to Menu</button>
                     </div>
+                } @else {
+                    <div class="not-submitted-order">
+                        <div class="content">
+                            <ul class="items">
+                                @for (it of items(); track it.dishId) {
+                                    <li class="item">
+                                        <img class="dish-image" [src]="it.imageUrl" [alt]="it.title" width="96" height="96" />
 
-                    <button
-                        type="button"
-                        class="submit"
-                        [disabled]="items().length === 0 || busy()"
-                        (click)="submitted.emit()"
-                    >
-                    {{ busy() ? 'Please wait...' : 'Submit Pre-Order' }}
-                    </button>
-                </div>
-            }
-        </aside>
+                                        <div class="info">
+                                            <div class="top">
+                                                <div class="dish-name">
+                                                    <span class="name">{{ it.title }}</span>
+                                                    <span class="caption">Expected ready time - 10 minutes</span>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    class="trash"
+                                                    [disabled]="busy()"
+                                                    [attr.aria-label]="'Remove ' + it.title"
+                                                    (click)="remove.emit(it.dishId)"
+                                                >
+                                                    <img src="assets/svg/trash.svg" alt="" aria-hidden="true" width="24" height="24" />
+                                                </button>
+                                            </div>
+
+                                            <div class="bottom">
+                                                <div class="quantity">
+                                                    <button
+                                                        type="button"
+                                                        class="step step--minus"
+                                                        aria-label="Decrease quantity"
+                                                        [disabled]="busy()"
+                                                        (click)="dec.emit(it.dishId)"
+                                                    >
+                                                        &minus;
+                                                    </button>
+                                                    <span class="value">{{ it.qty }}</span>
+                                                    <button
+                                                        type="button"
+                                                        class="step step--plus"
+                                                        aria-label="Increase quantity"
+                                                        [disabled]="busy()"
+                                                        (click)="inc.emit(it.dishId)"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+
+                                                <span class="price">{{ it.price * it.qty | price }}</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+
+                        <footer class="footer footer--sticky">
+                            @if (error()) {
+                                <p class="cart-error" role="alert">{{ error() }}</p>
+                            }
+                            <p class="grand-total">
+                                <span class="grand-total-label">Grand Total</span>
+                                <span class="grand-total-value">{{ total() | price }}</span>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="button button--primary button--extra-large button--full-width submit-btn"
+                                [disabled]="items().length === 0 || busy()"
+                                (click)="submitted.emit()"
+                            >
+                                {{ busy() ? 'Please wait...' : 'Submit Pre-Order' }}
+                            </button>
+                        </footer>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 }

@@ -34,7 +34,7 @@ export class LocationOverviewComponent implements OnInit {
   reviews: FeedbackResponseItem[] = [];
   userImages: Record <string, string> = {};
   selectedType: ReviewType = ReviewType.Service;
-  selectedSort: ReviewSort = ReviewSort.TopRatedFirst;
+  selectedSort: ReviewSort = ReviewSort.NewestFirst;
 
   currentPage = 1;
   totalPages = 1;

@@ -1,4 +1,6 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { buildPreOrderQueryParams } from '@app/shared/helpers/pre-order-query-params';
+import { PricePipe } from '@app/shared/pipes/price.pipe';
+import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -31,7 +33,7 @@ const ALL_GUESTS = 'all';
 
 @Component({
   selector: 'app-group-order-page',
-  imports: [ParticipantCardComponent, ModalComponent, CurrencyPipe, DatePipe],
+  imports: [PricePipe, ParticipantCardComponent, ModalComponent, DatePipe],
   templateUrl: './group-order-page.component.html',
   styleUrl: './group-order-page.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -151,6 +153,19 @@ export class GroupOrderPageComponent {
   }
 
   /** Closes the window and returns to the reservations list underneath it. */
+  /** Figma "Edit my Pre-Order": the owner goes back to the menu in pre-order mode for this reservation. */
+  editMyPreOrder(): void {
+    const invite = this.invite();
+    if (!invite) {
+      return;
+    }
+    const queryParams = buildPreOrderQueryParams(
+      { id: this.reservationId, locationAddress: invite.LocationAddress, startTime: invite.StartTime, endTime: invite.EndTime },
+      `Table ${invite.TableNumber}`,
+    );
+    void this.router.navigate(['/menu'], { queryParams });
+  }
+
   close(): void {
     markGuestsSeen(
       this.reservationId,

@@ -11,22 +11,16 @@
     </button>
 </section>
 } @else {
-<!-- green info strip + cart icon -->
-<div class="reservation-strip">
-    <div class="strip-text">
-        @if (store.inviteVm(); as vm) {
-        You are making a pre-order for the reservation
-        {{ vm.locationAddress }}, {{ vm.tableNumberText }}, {{ vm.timeText }}
-        } @else if (store.inviteLoading()) {
-        Loading reservation details...
-        } @else {
-        Reservation details are unavailable
-        }
-    </div>
-
-    <button type="button" class="cart-btn" (click)="openCart()" aria-label="Open cart">
-        <img src="assets/svg/cart-empty.svg" alt="" />
-    </button>
+<!-- green info strip (the cart icon lives in the header, as in Figma) -->
+<div class="pre-order-notice" role="status">
+    @if (store.inviteVm(); as vm) {
+    You are making a pre-order for the reservation
+    <strong>{{ vm.locationAddress }}, {{ vm.tableNumberText }}, {{ vm.dateText }}, {{ vm.timeText }}</strong>
+    } @else if (store.inviteLoading()) {
+    Loading reservation details...
+    } @else {
+    Reservation details are unavailable
+    }
 </div>
 
 @if (store.hasReminder()) {
@@ -39,12 +33,13 @@
 <div class="menu-container">
     <div class="page-navigation">
         <a routerLink="/main">Main page</a>
-        <span>›</span>
+        <svg class="page-navigation__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
         <span class="page-navigation__location">Menu</span>
     </div>
 
     <section class="hero-section">
-        <app-main-cover-image src="assets/img/main-page-cover.webp" alt="Fresh restaurant dishes" />
+        <img class="hero-image" src="assets/img/main-page-cover.webp" alt="" aria-hidden="true" />
+        <div class="hero-overlay"></div>
         <div class="hero-text-block">
             <p class="hero-subtitle">Green &amp; Tasty Restaurants</p>
             <h1 class="hero-title">Menu</h1>
@@ -62,11 +57,8 @@
             <section class="menu-section" aria-label="Pre-order menu">
                 <div class="filter-sort-bar">
                     <nav class="category-buttons" aria-label="Dish categories">
-                        <button type="button" [class.active]="selectedCategory() === null" (click)="selectCategory(null)">
-                            All dishes
-                        </button>
                         @for (category of categoryOptions(); track category.key) {
-                            <button type="button" [class.active]="selectedCategory() === category.key" (click)="selectCategory(category.key)">
+                            <button type="button" [class.active]="activeCategory() === category.key" (click)="selectCategory(category.key)">
                                 {{ category.label }}
                             </button>
                         }
@@ -102,9 +94,9 @@
 }
 
 <!-- cart drawer -->
-<app-guest-cart-drawer [open]="isCartOpen()" [items]="store.cartItems()" [total]="store.total()"
+<app-guest-cart-drawer [open]="store.cartOpen()" [items]="store.cartItems()" [total]="store.total()"
     [busy]="store.cartBusy()" [error]="store.cartError()" (closed)="closeCart()"
     (goToMenu)="closeCart()" (inc)="store.inc($event)" (dec)="store.dec($event)" (remove)="store.remove($event)"
     (submitted)="store.submitPreorder()" />
 }
-}
+}

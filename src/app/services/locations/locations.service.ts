@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { normalizeDishes, RawDishResponse } from '@app/shared/mappers/dish-response.mapper';
 import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
 import { LocationResponse } from '@app/models/locations/location-response.model';
 
@@ -21,6 +22,8 @@ export class LocationsService {
   }
 
   getSpecialtyDishes(id: string): Observable<DishListResponse[]> {
-    return this.http.get<DishListResponse[]>(`${this.baseUrl}/locations/${id}/dishes`);
+    return this.http
+      .get<RawDishResponse[]>(`${this.baseUrl}/locations/${id}/dishes`)
+      .pipe(map(normalizeDishes));
   }
 }

@@ -67,24 +67,20 @@
     }
   }
 
-  // Design: the Pre-Order button appears only for the hovered / focused card.
-  // It keeps its place (no layout jump); touch screens have no hover, so it stays visible there.
+  // Design: the Pre-Order button appears only for the hovered / focused card and the card grows
+  // to fit it; touch screens have no hover, so it stays visible there.
   .dish-info app-custom-button {
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.15s ease;
+    display: none;
   }
 
   &:hover .dish-info app-custom-button,
   &:focus-within .dish-info app-custom-button {
-    visibility: visible;
-    opacity: 1;
+    display: block;
   }
 
   @media (hover: none) {
     .dish-info app-custom-button {
-      visibility: visible;
-      opacity: 1;
+      display: block;
     }
   }
 

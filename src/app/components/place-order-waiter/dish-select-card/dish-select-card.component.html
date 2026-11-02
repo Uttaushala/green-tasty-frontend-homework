@@ -24,6 +24,6 @@
     <button class="remove-btn" (click)="onRemove()">
       <img src="../../../../assets/svg/trash.svg" alt="Remove Dish" />
     </button>
-    <div class="price">{{ dish.price | currency: '$' }}</div>
+    <div class="price">{{ dish.price | price }}</div>
   </div>
 </div>

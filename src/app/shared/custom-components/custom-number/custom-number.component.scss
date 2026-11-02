@@ -11,7 +11,7 @@
   gap: 12px;
 
   box-sizing: border-box;
-  min-width: 100px;
+  min-width: 140px;
   min-height: 44px;
   padding: 5px 15px;
 
@@ -42,18 +42,30 @@
 .counter {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
   margin-left: auto;
 }
 
+// Figma: 32px outlined squares with a 16px glyph; the limit state keeps the same look.
 .counter .icon-button {
-  width: 34px;
+  width: 32px;
   height: 32px;
   padding: 0;
+
+  > img {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:disabled {
+    opacity: 1;
+    color: color.$green-600;
+  }
 }
 
 .value {
-  min-width: 16px;
+  min-width: 10px;
+  text-align: center;
 
   span {
     font-size: 14px;

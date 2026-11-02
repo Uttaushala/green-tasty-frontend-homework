@@ -335,3 +335,8 @@
   color: color.$red-400;
   border-color: color.$red-400;
 }
+
+// Figma view mode (less than 30 min before the visit): the total is shown without the green accent.
+.grand-total-value--muted {
+  color: color.$neutral-900;
+}
