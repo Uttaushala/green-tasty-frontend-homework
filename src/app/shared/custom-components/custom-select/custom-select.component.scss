@@ -36,7 +36,16 @@
       display: flex;
       align-items: center;
       justify-content: start;
+      flex: 1 1 auto;
       gap: 8px;
+      min-width: 0;
+
+      // Figma: the field stays one line high; a long value is cut with an ellipsis.
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
 
     .icon {

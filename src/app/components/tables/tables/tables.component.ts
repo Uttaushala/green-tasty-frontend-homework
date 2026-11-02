@@ -85,7 +85,7 @@ export class TablesComponent implements OnInit {
       .subscribe((locations) => {
         this.locationOptions = [
           ALL_LOCATIONS_LABEL,
-          ...locations.map((location) => location.address),
+          ...locations.map((location) => location.address).filter((address): address is string => !!address),
         ];
         this.locations = locations;
 
