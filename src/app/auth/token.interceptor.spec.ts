@@ -12,11 +12,13 @@ describe('tokenInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
   let toastService: jasmine.SpyObj<ToastService>;
+  let authService: jasmine.SpyObj<AuthenticationService>;
 
   beforeEach(() => {
     toastService = jasmine.createSpyObj<ToastService>('ToastService', ['error']);
-    const authService = jasmine.createSpyObj<AuthenticationService>('AuthenticationService', [
+    authService = jasmine.createSpyObj<AuthenticationService>('AuthenticationService', [
       'getTokens',
+      'signOut',
     ]);
     authService.getTokens.and.returnValue(null);
 
@@ -98,5 +100,27 @@ describe('tokenInterceptor', () => {
 
       expect(toastService.error).not.toHaveBeenCalled();
     });
+  });
+
+  it('signs out and asks to log in again when a request with a token fails with status 0', () => {
+    authService.getTokens.and.returnValue({ idToken: 'stale', accessToken: 'stale' } as never);
+
+    http.get(URL).subscribe({ error: () => undefined });
+
+    httpMock.expectOne(URL).error(new ProgressEvent('error'), { status: 0 });
+
+    expect(authService.signOut).toHaveBeenCalled();
+    expect(toastService.error).toHaveBeenCalledWith(
+      'Your session has expired. Please log in again.',
+      'Unauthorized'
+    );
+  });
+
+  it('does not sign out when an anonymous request fails with status 0', () => {
+    http.get(URL).subscribe({ error: () => undefined });
+
+    httpMock.expectOne(URL).error(new ProgressEvent('error'), { status: 0 });
+
+    expect(authService.signOut).not.toHaveBeenCalled();
   });
 });

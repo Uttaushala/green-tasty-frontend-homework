@@ -87,9 +87,21 @@ export const tokenInterceptor: HttpInterceptorFn = (
       })
       : req;
 
+  const hasToken = clonedRequest.headers.has('Authorization');
+
   return next(clonedRequest).pipe(
     catchError((error: HttpErrorResponse) => {
       console.log(error);
+
+      // A token the API does not accept (e.g. issued by another backend) is rejected by the
+      // gateway without CORS headers, so the browser reports status 0. Drop the stale session.
+      if (hasToken && (error.status === 0 || error.status === 401)) {
+        authService.signOut();
+        if (!clonedRequest.context.get(SKIP_ERROR_TOAST)) {
+          toastr.error('Your session has expired. Please log in again.', 'Unauthorized');
+        }
+        return throwError(() => error);
+      }
       const errorMessage = getServerErrorMessage(error) || 'An unexpected error occurred.';
 
       if (clonedRequest.url.includes('orders') && error.status === 404) {
