@@ -94,11 +94,15 @@
             [isMe]="person.id === ownerSessionId()"
             [canRemove]="person.type === 'Guest' && !isSent() && !viewMode()"
             [canEdit]="person.id === ownerSessionId() && !viewMode()"
+            [canEditItems]="person.id === ownerSessionId() && !viewMode()"
+            [mutatingDishId]="person.id === ownerSessionId() ? mutatingItemId() : null"
             (editClick)="editMyPreOrder()"
             [canRemind]="canRemind() && person.type === 'Guest' && !person.isSubmitted"
             [reminding]="remindingTarget() === person.id || allReminding()"
             (removeClick)="askRemoveGuest($event)"
             (remindClick)="remind($event)"
+            (itemQuantityChange)="updateMyItemQuantity($event.dishId, $event.quantity)"
+            (itemRemove)="removeMyItem($event)"
           />
         </li>
       }

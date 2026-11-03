@@ -23,9 +23,17 @@ export class ParticipantCardComponent {
 
   /** Owner's own card: "Edit my Pre-Order" link. */
   readonly canEdit = input(false);
+  /** Figma: while the group is still collecting, "My Pre-Order" rows get a trash icon and a +/- stepper
+   * instead of plain "Qty: n" text. Only ever true for the owner's own card — guests edit their own cart. */
+  readonly canEditItems = input(false);
+  /** Dish id with a quantity/remove request in flight — its row's controls disable while it resolves. */
+  readonly mutatingDishId = input<string | null>(null);
+
   readonly editClick = output<void>();
   readonly removeClick = output<Participant>();
   readonly remindClick = output<Participant>();
+  readonly itemQuantityChange = output<{ dishId: string; quantity: number }>();
+  readonly itemRemove = output<string>();
 
   readonly title = computed(() => {
     const person = this.participant();

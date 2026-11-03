@@ -37,16 +37,51 @@
   </header>
 
   @if (participant().items.length) {
-    <ul class="items">
+    <ul class="items" [class.items--editable]="canEditItems()">
       @for (item of participant().items; track item.dish.id) {
         <li class="item">
+          @if (canEditItems()) {
+            <button
+              type="button"
+              class="item-delete"
+              [attr.aria-label]="'Remove ' + item.dish.name"
+              [disabled]="mutatingDishId() === item.dish.id"
+              (click)="itemRemove.emit(item.dish.id)"
+            >
+              <img src="assets/svg/trash.svg" alt="" width="20" height="20" />
+            </button>
+          }
           @if (item.dish.imageUrl) {
             <img class="avatar" [src]="item.dish.imageUrl" alt="" width="48" height="48" loading="lazy" />
           } @else {
             <span class="avatar initial" aria-hidden="true">{{ item.dish.name.charAt(0) }}</span>
           }
           <p class="name">{{ item.dish.name }}</p>
-          <p class="qty">Qty: {{ item.quantity }}</p>
+          @if (canEditItems()) {
+            <div class="stepper" role="group" [attr.aria-label]="item.dish.name + ' quantity'">
+              <button
+                type="button"
+                class="icon-button icon-button--small stepper-decrement"
+                aria-label="Decrease quantity"
+                [disabled]="item.quantity <= 1 || mutatingDishId() === item.dish.id"
+                (click)="itemQuantityChange.emit({ dishId: item.dish.id, quantity: item.quantity - 1 })"
+              >
+                <img src="assets/svg/minus-16-green.svg" alt="" aria-hidden="true" />
+              </button>
+              <span class="stepper-value" aria-live="polite">{{ item.quantity }}</span>
+              <button
+                type="button"
+                class="icon-button icon-button--small icon-button--outlined"
+                aria-label="Increase quantity"
+                [disabled]="mutatingDishId() === item.dish.id"
+                (click)="itemQuantityChange.emit({ dishId: item.dish.id, quantity: item.quantity + 1 })"
+              >
+                <img src="assets/svg/plus-16-green.svg" alt="" aria-hidden="true" />
+              </button>
+            </div>
+          } @else {
+            <p class="qty">Qty: {{ item.quantity }}</p>
+          }
           <p class="price">{{ item.dish.price * item.quantity | price }}</p>
         </li>
       }
