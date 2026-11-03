@@ -2,7 +2,12 @@
 <app-guest-preorder-submitted [items]="store.cartItems()" [total]="store.total()" [guestName]="store.guestName()"
     [invite]="store.invite()" (createNew)="store.createNewPreorder()" />
 } @else {
-@if (store.inviteError() === 'retryable') {
+@if (store.inviteError() === 'full') {
+<section class="invite-retry" role="alert">
+    <h1>This reservation is already full</h1>
+    <p>All the guest places for this reservation are taken. Please ask the host to free a place.</p>
+</section>
+} @else if (store.inviteError() === 'retryable') {
 <section class="invite-retry" role="alert">
     <h1>We couldn’t load the invitation</h1>
     <p>This may be a temporary connection or server issue. Please try again.</p>
