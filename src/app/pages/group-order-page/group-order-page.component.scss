@@ -283,6 +283,8 @@
   gap: 16px;
 
   // Design: «Cancel» is an underlined text button, the destructive action is a red outline.
+  // The underline itself comes from the shared .button--tertiary text-decoration — a border-bottom
+  // here would draw a second line right under it.
   .button--tertiary {
     min-height: 0;
     padding: 4px 8px;
@@ -290,7 +292,6 @@
     color: color.$neutral-900;
     background: none;
     border: none;
-    border-bottom: 1px solid color.$neutral-900;
     border-radius: 0;
   }
 }
