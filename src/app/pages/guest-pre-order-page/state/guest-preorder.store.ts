@@ -384,6 +384,10 @@ export class GuestPreorderStore {
         const guestName = this.guestName().trim();
         if (!ctx || !invite?.GroupReservationId || !guestName || this.joinLoading()) return;
 
+        // The guest already has a seat (this is their own prior submitted session, not a new
+        // participant), so the backend must not count it against the reservation's guest limit.
+        const previousGuestSessionId = this.guestSessionId() ?? undefined;
+
         localStorage.removeItem(this.key(ctx, 'cart'));
         localStorage.removeItem(this.key(ctx, 'guestSessionId'));
         localStorage.removeItem(this.key(ctx, 'guestSessionToken'));
@@ -402,6 +406,7 @@ export class GuestPreorderStore {
             const session = await firstValueFrom(this.guestSessionsService.createSession({
                 groupReservationId: invite.GroupReservationId,
                 guestName,
+                replacesGuestSessionId: previousGuestSessionId,
             }));
             this.guestSessionId.set(session.SessionId);
             this.guestSessionToken.set(session.SessionToken);
