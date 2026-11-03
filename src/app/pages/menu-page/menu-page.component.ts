@@ -32,7 +32,8 @@ export class MenuPageComponent implements OnInit {
   preOrderReservationId?: string;
   preOrderReservationLabel?: string;
 
-  sortOptions = Object.values(DishSort);
+  // Дизайн показывает 4 пункта; «Least Popular First» остаётся валидным значением URL, но в списке не показывается.
+  sortOptions = [DishSort.PopularityDescending, DishSort.PriceAscending, DishSort.PriceDescending];
   sortLabels = DishSortingLabels;
 
   menuCategories = Object.values(DishType);

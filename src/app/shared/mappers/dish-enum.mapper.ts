@@ -9,10 +9,10 @@ export const DishTypeLabels: Record<DishType, string> = {
 };
 
 export const DishSortingLabels: Record<DishSort, string> = {
-  [DishSort.PriceDescending]: 'Price Descending',
-  [DishSort.PriceAscending]: 'Price Ascending',
-  [DishSort.PopularityDescending]: 'Popularity Descending',
-  [DishSort.PopularityAscending]: 'Popularity Ascending',
+  [DishSort.PriceDescending]: 'Price: High to Low',
+  [DishSort.PriceAscending]: 'Price: Low to High',
+  [DishSort.PopularityDescending]: 'Popular First',
+  [DishSort.PopularityAscending]: 'Least Popular First',
 };
 
 export const DishStateLabels: Record<DishState, string> = {

@@ -137,6 +137,26 @@ export class CardReservationComponent {
     );
   });
 
+  // Подпись кнопки официанта по состоянию резервации (аннотации макета Waiter).
+  readonly waiterOrderLabel = computed(() => {
+    const reservation = this.r();
+    const hasItems = this.preOrderItemCount() > 0;
+
+    switch (reservation.status) {
+      case ReservationStatusCustomer.Reserved:
+        if (!hasItems) {
+          return 'Pre-order';
+        }
+        return reservation.preOrder?.status === 1 ? 'View Pre-order' : 'Submit Pre-order';
+      case ReservationStatusCustomer.InProgress:
+        return hasItems ? 'Edit Order' : 'Create Order';
+      case ReservationStatusCustomer.Finished:
+        return 'View Order';
+      default:
+        return 'Pre-order';
+    }
+  });
+
   readonly canOpenGroupOrder = computed(() => {
     return (
       this.role() === Roles.CUSTOMER &&
