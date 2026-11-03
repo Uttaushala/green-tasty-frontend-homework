@@ -17,10 +17,13 @@
   position: relative;
   box-sizing: border-box;
 
+  // Figma: the card's total height never changes. The image shrinks by exactly the
+  // Pre-Order button's height (+gap) to make room for it, instead of the card growing.
   .dish-image {
     width: 12.25rem;
     height: 12.25rem;
     flex: none;
+    transition: width 150ms ease, height 150ms ease;
     @include card.common-image(circle);
     box-shadow: 0 0 0.625rem 0.25rem color.$shadow;
   }
@@ -67,22 +70,33 @@
     }
   }
 
-  // Design: the Pre-Order button appears only for the hovered / focused card. Its place is reserved
-  // (hidden, not removed), so the card keeps its size: nothing jumps and cards never overlap.
+  // The Pre-Order button is not in the layout by default (no reserved blank space); hovering /
+  // focusing the card shrinks the image by the button's footprint and drops the button in.
   .dish-info app-custom-button {
-    display: block;
-    visibility: hidden;
+    display: none;
   }
 
-  &:hover .dish-info app-custom-button,
-  &:focus-within .dish-info app-custom-button {
-    visibility: visible;
-  }
+  &:hover,
+  &:focus-within {
+    .dish-image {
+      width: 8.75rem;
+      height: 8.75rem;
+    }
 
-  // Touch screens have no hover, so the button stays visible there.
-  @media (hover: none) {
     .dish-info app-custom-button {
-      visibility: visible;
+      display: block;
+    }
+  }
+
+  // Touch screens have no hover, so the button (and the shrunk image) stay in place there.
+  @media (hover: none) {
+    .dish-image {
+      width: 8.75rem;
+      height: 8.75rem;
+    }
+
+    .dish-info app-custom-button {
+      display: block;
     }
   }
 
