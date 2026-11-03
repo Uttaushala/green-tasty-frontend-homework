@@ -56,6 +56,95 @@
   }
 }
 
+// Figma: status filter tabs sit under the greeting bar, with the active tab underlined
+// and its count badge filled solid instead of outlined.
+.status-tabs {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+
+  padding: 0 40px;
+
+  overflow-x: auto;
+
+  border-bottom: 1px solid color.$neutral-200;
+
+  @media (max-width: 760px) {
+    gap: 20px;
+    padding: 0 16px;
+  }
+}
+
+.status-tabs__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 8px;
+
+  padding: 16px 0;
+
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: color.$neutral-700;
+  white-space: nowrap;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    color: color.$neutral-900;
+  }
+
+  &:focus-visible {
+    outline: 2px solid color.$orange-400;
+    outline-offset: 2px;
+  }
+
+  &.active {
+    color: color.$neutral-900;
+    font-weight: 600;
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 3px;
+      background: color.$green-600;
+      border-radius: 2px;
+    }
+
+    .status-tabs__count {
+      color: color.$neutral-0;
+      background: color.$green-600;
+      border-color: color.$green-600;
+    }
+  }
+}
+
+.status-tabs__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: color.$neutral-700;
+
+  background: color.$neutral-0;
+  border: 1px solid color.$neutral-200;
+  border-radius: 999px;
+}
+
 .reservation-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(17.5rem, 436px));

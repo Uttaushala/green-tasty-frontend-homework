@@ -16,17 +16,35 @@
     Please wait while we load your reservations.
   </p>
 } @else if (reservations().length > 0) {
-  <ul class="reservation-list">
-    @for (reservation of reservations(); track reservation.id) {
-      <app-customer-reservation-card
-        [reservation]="reservation"
-        (cancelReservation)="requestCancel($event)"
-        (inviteGuests)="openInviteModal($event)"
-        (leaveFeedback)="openFeedback($event)"
-        (updateFeedback)="openFeedback($event)"
-      />
+  <nav class="status-tabs" aria-label="Filter reservations by status">
+    @for (tab of filterTabs; track tab.id) {
+      <button
+        type="button"
+        class="status-tabs__item"
+        [class.active]="selectedFilter() === tab.id"
+        (click)="selectFilter(tab.id)"
+      >
+        {{ tab.label }}
+        <span class="status-tabs__count">{{ filterCounts()[tab.id] }}</span>
+      </button>
     }
-  </ul>
+  </nav>
+
+  @if (filteredReservations().length > 0) {
+    <ul class="reservation-list">
+      @for (reservation of filteredReservations(); track reservation.id) {
+        <app-customer-reservation-card
+          [reservation]="reservation"
+          (cancelReservation)="requestCancel($event)"
+          (inviteGuests)="openInviteModal($event)"
+          (leaveFeedback)="openFeedback($event)"
+          (updateFeedback)="openFeedback($event)"
+        />
+      }
+    </ul>
+  } @else {
+    <p class="reservation-empty">No reservations in this category.</p>
+  }
 } @else {
   <div class="reservation-empty reservation-empty--none">
     <img
