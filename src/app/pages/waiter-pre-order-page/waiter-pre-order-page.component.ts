@@ -1,11 +1,12 @@
 import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
+import { ToastService } from '@app/services/toast/toast.service';
 import {
-  ChangeDetectorRef,
   Component,
   inject,
   Input,
   OnInit,
   ChangeDetectionStrategy,
+  signal,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { OrderItem } from '@app/models/dishes/order-item.model';
@@ -13,6 +14,9 @@ import { DishCardComponent } from '@app/shared/custom-components/dish-card/dish-
 import { firstValueFrom } from 'rxjs';
 import { WaiterPreOrderState } from '@app/models/orders/order.model';
 import { CustomButtonComponent } from '@app/shared/custom-components/custom-button/custom-button.component';
+
+/** Order.status values relevant to this page (see backend OrderStatus). */
+const ORDER_STATUS_SUBMITTED_BY_WAITER = 1;
 
 @Component({
   selector: 'app-waiter-pre-order-page',
@@ -32,9 +36,15 @@ export class WaiterPreOrderPageComponent implements OnInit {
   reservationTime = '';
   @Input() customClass = '';
 
+  /** Once the waiter has reviewed every dish, the order is auto-submitted and this page locks. */
+  readonly viewMode = signal(false);
+  readonly loading = signal(true);
+  /** Dish id with a confirm/reject request in flight — its row disables while it resolves. */
+  readonly mutatingDishId = signal<string | null>(null);
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
 
   preOrdersService = inject(PreOrdersService);
 
@@ -48,12 +58,12 @@ export class WaiterPreOrderPageComponent implements OnInit {
       const stored = sessionStorage.getItem('waiterPreOrderData');
       if (stored) {
         data = JSON.parse(stored);
-        console.log('data', data);
       }
     }
 
     if (!data?.reservationId) {
-      console.warn('Reservation ID not found');
+      this.toast.error('Reservation not found. Please go back and try again.', 'Pre-order');
+      this.loading.set(false);
       return;
     }
 
@@ -64,154 +74,46 @@ export class WaiterPreOrderPageComponent implements OnInit {
 
     firstValueFrom(this.preOrdersService.getByReservationId(data.reservationId))
       .then((order) => {
-        console.log('order', order);
-        console.log('ORDER FROM SERVER:', JSON.stringify(order, null, 2));
-
         this.orderItems = order.orderItems ?? [];
         this.reservationTime = order.reservationTime || '';
-        // this.refreshOrder();
+        this.viewMode.set(order.status === ORDER_STATUS_SUBMITTED_BY_WAITER);
       })
-      .catch((err) => {
-        console.error('Error loading order:', err);
-      });
+      .catch(() => {
+        this.toast.error('The pre-order could not be loaded.', 'Pre-order');
+      })
+      .finally(() => this.loading.set(false));
   }
 
-  onRemove(dishId: string) {
-    this.orderItems = this.orderItems.filter((item) => item.dish.id !== dishId);
+  confirmDish(dishId: string): void {
+    this.reviewDish(dishId, 1, () => this.preOrdersService.confirmDishInOrder(this.reservationId, dishId));
   }
 
-  confirmDish(dishId: string) {
-    this.preOrdersService.confirmDishInOrder(this.reservationId, dishId).subscribe({
+  rejectDish(dishId: string): void {
+    this.reviewDish(dishId, 2, () => this.preOrdersService.rejectDishInOrder(this.reservationId, dishId));
+  }
+
+  private reviewDish(dishId: string, newState: number, request: () => ReturnType<PreOrdersService['confirmDishInOrder']>): void {
+    if (this.viewMode() || this.mutatingDishId() !== null) {
+      return;
+    }
+    this.mutatingDishId.set(dishId);
+
+    request().subscribe({
       next: () => {
-        const index = this.orderItems.findIndex((i) => i.dish.id === dishId);
-        if (index !== -1) {
-          const item = this.orderItems[index];
-          const updatedItem: OrderItem = {
-            ...item,
-            dish: {
-              ...item.dish,
-              status: 'Confirmed',
-            },
-            state: 1, // Update state to 'Confirmed'
-          };
-          this.orderItems.splice(index, 1, updatedItem);
-          this.orderItems = [...this.orderItems];
-          this.cdr.detectChanges();
-          console.log('Updated orderItems:', this.orderItems);
+        this.orderItems = this.orderItems.map((item) =>
+          item.dish.id === dishId ? { ...item, state: newState } : item,
+        );
+        this.mutatingDishId.set(null);
+
+        if (this.orderItems.every((item) => item.state !== 0)) {
+          this.viewMode.set(true);
+          this.toast.success('All dishes reviewed — the pre-order has been sent back to the owner.', 'Pre-order');
         }
       },
-      error: (err) => {
-        console.error(err);
+      error: () => {
+        this.mutatingDishId.set(null);
+        this.toast.error('The dish could not be updated. Please try again.', 'Pre-order');
       },
     });
   }
-
-  rejectDish(dishId: string) {
-    this.preOrdersService.rejectDishInOrder(this.reservationId, dishId).subscribe({
-      next: () => {
-        const index = this.orderItems.findIndex((i) => i.dish.id === dishId);
-        if (index !== -1) {
-          const item = this.orderItems[index];
-          const updatedItem: OrderItem = {
-            ...item,
-            dish: {
-              ...item.dish,
-              status: 'Rejected',
-            },
-            state: 2, // Update state to 'Rejected'
-          };
-          this.orderItems.splice(index, 1, updatedItem);
-          this.orderItems = [...this.orderItems];
-          this.cdr.detectChanges();
-          console.log('Dish rejected and updated locally:', updatedItem);
-          console.log('Updated orderItems:', this.orderItems);
-        }
-      },
-      error: (err) => {
-        console.error('Failed to reject dish:', err);
-      },
-    });
-  }
-
-  // rejectDish(dishId: string) {
-  //   this.preOrdersService.rejectDishInOrder(this.reservationId, dishId).subscribe({
-  //     next: async () => {
-  //       const order = await firstValueFrom(
-  //         this.preOrdersService.getByReservationId(this.reservationId)
-  //       );
-  //       this.orderItems = order.orderItems ?? [];
-  //       this.cdr.detectChanges();
-  //       console.log('Order reloaded:', this.orderItems);
-  //     },
-  //     error: (err) => {
-  //       console.error('Failed to reject dish:', err);
-  //     },
-  //   });
-  // }
-
-  // confirmDish(dishId: string) {
-  //   this.preOrdersService.confirmDishInOrder(this.reservationId, dishId).subscribe({
-  //     next: async () => {
-  //       const index = this.orderItems.findIndex((i) => i.dish.id === dishId);
-  //       if (index !== -1) {
-  //         const item = this.orderItems[index];
-  //         const updatedItem: OrderItem = {
-  //           ...item,
-  //           dish: {
-  //             ...item.dish,
-  //             status: 'Confirmed',
-  //           },
-  //         };
-  //         this.orderItems.splice(index, 1, updatedItem);
-  //         this.orderItems = [...this.orderItems];
-  //         this.cdr.detectChanges();
-  //         console.log('Locally updated orderItems (confirmed):', this.orderItems);
-  //       }
-
-  //       const order = await firstValueFrom(
-  //         this.preOrdersService.getByReservationId(this.reservationId)
-  //       );
-  //       this.orderItems = order.orderItems ?? [];
-  //       this.cdr.detectChanges();
-  //       console.log('Order reloaded (confirmed):', this.orderItems);
-  //       console.log('ORDER FROM SERVER:', JSON.stringify(this.orderItems, null, 2));
-  //     },
-  //     error: (err) => {
-  //       console.error(err);
-  //     },
-  //   });
-  // }
-
-  // rejectDish(dishId: string) {
-  //   this.preOrdersService.rejectDishInOrder(this.reservationId, dishId).subscribe({
-  //     next: async () => {
-  //       const index = this.orderItems.findIndex((i) => i.dish.id === dishId);
-  //       if (index !== -1) {
-  //         const item = this.orderItems[index];
-  //         const updatedItem: OrderItem = {
-  //           ...item,
-  //           dish: {
-  //             ...item.dish,
-  //             status: 'Rejected',
-  //           },
-  //         };
-  //         this.orderItems.splice(index, 1, updatedItem);
-  //         this.orderItems = [...this.orderItems];
-  //         this.cdr.detectChanges();
-  //         console.log('Locally updated orderItems (rejected):', this.orderItems);
-  //       }
-
-  //       const order = await firstValueFrom(
-  //         this.preOrdersService.getByReservationId(this.reservationId)
-  //       );
-  //       this.orderItems = order.orderItems ?? [];
-  //       this.cdr.detectChanges();
-  //       console.log('Order reloaded (rejected):', this.orderItems);
-  //       console.log('ORDER FROM SERVER:', JSON.stringify(this.orderItems, null, 2));
-  //     },
-  //     error: (err) => {
-  //       console.error('Failed to reject dish:', err);
-  //     },
-  //   });
-  // }
 }

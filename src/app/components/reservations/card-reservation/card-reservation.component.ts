@@ -257,7 +257,7 @@ export class CardReservationComponent {
       reservationId: reservation.id,
       createdByName: this.creatorName(),
       createdByRole: this.creatorRole(),
-      tableName: reservation.tableName || 'Unknown table',
+      tableName: reservation.tableName || 'Unknown',
     };
 
     sessionStorage.setItem(

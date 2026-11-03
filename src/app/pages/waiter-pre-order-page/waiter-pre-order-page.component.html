@@ -4,37 +4,46 @@
   <span class="breadcrumb-current">Pre-order</span>
 </nav>
 
-<h2 class="title">
-  Pre-order of {{ createdByRole.toLowerCase() }} {{ createdByName }}, Table {{ tableName }} ({{
-    reservationTime
-  }})
-</h2>
-<div class="preorder-list">
-  @for (item of orderItems; track item.dish.id) {
-    <app-dish-card
-      [dish]="item.dish"
-      (remove)="onRemove(item.dish.id)"
-      class="pre-order-dish"
-    >
-      <div dish-footer class="pre-order-footer">
-        <div class="pre-order-quantity">Quantity: {{ item.quantity }}</div>
-        <div class="preorder-actions">
-          <app-custom-button
-            class="btn-cancel"
-            (click)="rejectDish(item.dish.id)"
-            [disabled]="item.state === 2"
-          >
-            Cancel
-          </app-custom-button>
-          <app-custom-button
-            class="btn-confirm"
-            (click)="confirmDish(item.dish.id)"
-            [disabled]="item.state === 1"
-          >
-            Confirm
-          </app-custom-button>
-        </div>
-      </div>
-    </app-dish-card>
+@if (loading()) {
+  <p class="state">Loading pre-order…</p>
+} @else if (!orderItems.length) {
+  <p class="state">This pre-order has no dishes.</p>
+} @else {
+  <h2 class="title">
+    Pre-order of {{ createdByRole.toLowerCase() }} {{ createdByName }}, Table {{ tableName }} ({{
+      reservationTime
+    }})
+  </h2>
+
+  @if (viewMode()) {
+    <p class="view-mode-notice" role="status">
+      Every dish has been reviewed. This pre-order was sent back to the owner and can no longer be changed here.
+    </p>
   }
-</div>
+
+  <div class="preorder-list">
+    @for (item of orderItems; track item.dish.id) {
+      <app-dish-card [dish]="item.dish" class="pre-order-dish">
+        <div dish-footer class="pre-order-footer">
+          <div class="pre-order-quantity">Quantity: {{ item.quantity }}</div>
+          <div class="preorder-actions">
+            <app-custom-button
+              class="btn-cancel"
+              (click)="rejectDish(item.dish.id)"
+              [disabled]="viewMode() || item.state === 2 || mutatingDishId() === item.dish.id"
+            >
+              Cancel
+            </app-custom-button>
+            <app-custom-button
+              class="btn-confirm"
+              (click)="confirmDish(item.dish.id)"
+              [disabled]="viewMode() || item.state === 1 || mutatingDishId() === item.dish.id"
+            >
+              Confirm
+            </app-custom-button>
+          </div>
+        </div>
+      </app-dish-card>
+    }
+  </div>
+}
