@@ -112,8 +112,10 @@ export class CartComponent implements OnInit {
     this.cancelOrderId.set(null);
   }
 
+  /** The confirmation modal is shown instead of the cart (like in the design); closing it leaves the cart too. */
   closeSubmitModal(): void {
     this.submitOrderId.set(null);
+    this.closeCart();
   }
 
   editOrderModal(): void {
@@ -125,7 +127,7 @@ export class CartComponent implements OnInit {
     }
 
     this.editOrder(orderId);
-    this.closeSubmitModal();
+    this.submitOrderId.set(null);
   }
 
   goToReservations(): void {

@@ -326,11 +326,11 @@ export class GroupOrderPageComponent {
   }
 
   /**
-   * Once the group is sent, the regular order already holds every guest's dishes too,
-   * so it must not be shown as the owner's own pre-order.
+   * Once the group is sent, the regular order also holds every submitted guest's dishes,
+   * so those are taken out and only the owner's own dishes stay in "My Pre-Order".
    */
   private withOwnerDishes(participants: Participant[], ownerOrder: Order | null, status: GroupReservationStatus): Participant[] {
-    return status === 'Open' ? withOwnerOrder(participants, ownerOrder) : participants;
+    return withOwnerOrder(participants, ownerOrder, status !== 'Open');
   }
 
   private fetchLatest$() {

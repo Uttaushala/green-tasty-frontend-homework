@@ -1,3 +1,4 @@
+@if (!submitOrderId()) {
 <div
   class="modal-backdrop"
   tabindex="0"
@@ -115,6 +116,7 @@
     </div>
   </div>
 </div>
+}
 
 @if (cancelOrderId(); as orderId) {
   <app-cancel-order-modal

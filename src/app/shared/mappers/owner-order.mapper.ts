@@ -10,10 +10,29 @@ const SENT_ORDER_STATUSES: readonly number[] = [1, 3];
  * The owner's own pre-order is saved as the reservation's regular order, while the group window lists
  * the owner from a separate guest session that stays empty. Fills "My Pre-Order" from the order
  * when the owner's session has no dishes of its own.
+ *
+ * After the group is sent, the order also holds every submitted guest's dishes. With
+ * `withoutGuestDishes` those are subtracted, so only the owner's own dishes stay in "My Pre-Order".
  */
-export function withOwnerOrder(participants: Participant[], order: Order | null): Participant[] {
+export function withOwnerOrder(
+  participants: Participant[],
+  order: Order | null,
+  withoutGuestDishes = false,
+): Participant[] {
   if (!order) {
     return participants;
+  }
+
+  const guestQuantities = new Map<string, number>();
+  if (withoutGuestDishes) {
+    for (const person of participants) {
+      if (person.type === 'Owner' || !person.isSubmitted) {
+        continue;
+      }
+      for (const item of person.items) {
+        guestQuantities.set(item.dish.id, (guestQuantities.get(item.dish.id) ?? 0) + item.quantity);
+      }
+    }
   }
 
   const items: ParticipantItem[] = order.orderItems
@@ -27,7 +46,13 @@ export function withOwnerOrder(participants: Participant[], order: Order | null)
         weight: item.dish.weight,
       },
       quantity: item.quantity,
-    }));
+    }))
+    .map((item) => {
+      const taken = Math.min(guestQuantities.get(item.dish.id) ?? 0, item.quantity);
+      guestQuantities.set(item.dish.id, (guestQuantities.get(item.dish.id) ?? 0) - taken);
+      return { ...item, quantity: item.quantity - taken };
+    })
+    .filter((item) => item.quantity > 0);
 
   if (items.length === 0) {
     return participants;

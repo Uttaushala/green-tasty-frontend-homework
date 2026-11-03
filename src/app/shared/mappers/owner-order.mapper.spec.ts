@@ -68,4 +68,37 @@ describe('withOwnerOrder', () => {
 
     expect(withOwnerOrder([busyOwner], buildOrder(0))[0]).toBe(busyOwner);
   });
+  describe('after the group has been sent', () => {
+    function buildMergedOrder(): Order {
+      const order = buildOrder(1);
+      order.orderItems.push({ dish: { id: 'dish-2', name: 'Soup', price: 8 } as never, quantity: 3, state: 0 });
+      return order;
+    }
+
+    it('takes the submitted guests dishes out of the owner order', () => {
+      const [result] = withOwnerOrder([owner, guest], buildMergedOrder(), true);
+
+      expect(result.items.map((item) => [item.dish.id, item.quantity])).toEqual([
+        ['dish-1', 2],
+        ['dish-3', 1],
+        ['dish-2', 2],
+      ]);
+      expect(result.total).toBe(2 * 12 + 3 + 2 * 8);
+      expect(result.isSubmitted).toBeTrue();
+    });
+
+    it('keeps dishes of guests who have not submitted', () => {
+      const pendingGuest = { ...guest, isSubmitted: false };
+      const [result] = withOwnerOrder([owner, pendingGuest], buildMergedOrder(), true);
+
+      expect(result.items.find((item) => item.dish.id === 'dish-2')?.quantity).toBe(3);
+    });
+
+    it('leaves the owner empty when the order holds only guest dishes', () => {
+      const order = buildOrder(1);
+      order.orderItems = [{ dish: { id: 'dish-2', name: 'Soup', price: 8 } as never, quantity: 1, state: 0 }];
+
+      expect(withOwnerOrder([owner, guest], order, true)).toEqual([owner, guest]);
+    });
+  });
 });
