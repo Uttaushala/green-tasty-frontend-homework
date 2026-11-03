@@ -20,10 +20,11 @@ describe('Сторінка Owner Review · вікно', () => {
 
   function create() {
     const service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getOwnerOrder$', 'getStatus$',
     ]);
     service.getGroupInvite$.and.returnValue(of(INVITE));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
     service.getSessions$.and.returnValue(of({
       participants: [
         { id: 'owner', type: 'Owner' as const, name: 'Yevhenii', isSubmitted: true, total: 0, items: [] },

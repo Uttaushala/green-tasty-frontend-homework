@@ -9,6 +9,7 @@ import { EMPTY, Subject, catchError, exhaustMap, filter, forkJoin, merge, of, sw
 import { ParticipantCardComponent } from '@app/components/group-orders/participant-card/participant-card.component';
 import { GroupReservationStatus } from '@app/models/group-orders/group-status.model';
 import { Participant } from '@app/models/group-orders/participant.model';
+import { Order } from '@app/models/orders/order.model';
 import { RemindGuestsResponse } from '@app/models/group-orders/remind-guests.model';
 import { GuestInvite } from '@app/models/reservations/guest-invite.model';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
@@ -16,6 +17,7 @@ import { ToastService } from '@app/services/toast/toast.service';
 import { ModalComponent } from '@app/shared/custom-components/modal/modal.component';
 import { consolidatePreOrder } from '@app/shared/helpers/consolidate-pre-order';
 import { markGuestsSeen } from '@app/shared/helpers/seen-guests';
+import { withOwnerOrder } from '@app/shared/mappers/owner-order.mapper';
 
 /** Як часто підтягуємо свіжі кошики, поки група Open. */
 export const SYNC_INTERVAL_MS = 15_000;
@@ -131,14 +133,15 @@ export class GroupOrderPageComponent {
             sessions: this.groupOrdersService.getSessions$(invite.GroupReservationId),
             ownerSessionId: this.groupOrdersService.getOwnerSessionId$(this.reservationId),
             status: this.groupOrdersService.getStatus$(invite.GroupReservationId),
+            ownerOrder: this.groupOrdersService.getOwnerOrder$(this.reservationId),
           }),
         ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: ({ invite, sessions, ownerSessionId, status }) => {
+        next: ({ invite, sessions, ownerSessionId, status, ownerOrder }) => {
           this.invite.set(invite);
-          this.participants.set(sessions.participants);
+          this.participants.set(this.withOwnerDishes(sessions.participants, ownerOrder, status.status));
           this.ownerSessionId.set(ownerSessionId);
           this.status.set(status.status);
           this.lastUpdated.set(new Date());
@@ -322,14 +325,23 @@ export class GroupOrderPageComponent {
     return !this.loading() && this.loadError() === null && this.groupId() !== '' && this.status() === 'Open';
   }
 
+  /**
+   * Once the group is sent, the regular order already holds every guest's dishes too,
+   * so it must not be shown as the owner's own pre-order.
+   */
+  private withOwnerDishes(participants: Participant[], ownerOrder: Order | null, status: GroupReservationStatus): Participant[] {
+    return status === 'Open' ? withOwnerOrder(participants, ownerOrder) : participants;
+  }
+
   private fetchLatest$() {
     const groupId = this.groupId();
     return forkJoin({
       sessions: this.groupOrdersService.getSessions$(groupId, { silent: true }),
       status: this.groupOrdersService.getStatus$(groupId, { silent: true }),
+      ownerOrder: this.groupOrdersService.getOwnerOrder$(this.reservationId),
     }).pipe(
-      switchMap(({ sessions, status }) => {
-        this.participants.set(sessions.participants);
+      switchMap(({ sessions, status, ownerOrder }) => {
+        this.participants.set(this.withOwnerDishes(sessions.participants, ownerOrder, status.status));
         this.status.set(status.status);
         this.lastUpdated.set(new Date());
         this.syncFailed.set(false);

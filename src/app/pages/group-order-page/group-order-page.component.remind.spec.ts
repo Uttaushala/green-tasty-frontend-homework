@@ -58,10 +58,11 @@ describe('Сторінка Owner Review · нагадування', () => {
   beforeEach(() => {
     toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error', 'info']);
     service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$', 'submit$', 'remind$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getOwnerOrder$', 'getStatus$', 'submit$', 'remind$',
     ]);
     service.getGroupInvite$.and.returnValue(of(INVITE));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
   });
 
   it('«Remind» є лише в гостей, які ще обирають (не в Owner і не в тих, хто підтвердив)', () => {

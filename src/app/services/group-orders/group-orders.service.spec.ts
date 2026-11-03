@@ -75,6 +75,22 @@ describe('Рівень 2 · GroupOrdersService', () => {
     expect(id).toBe('owner-1');
   });
 
+  it('getOwnerOrder$: GET /orders/{reservationId} і віддає замовлення', () => {
+    let received: unknown = null;
+    service.getOwnerOrder$('res-1').subscribe((order) => (received = order));
+    const req = http.expectOne(`${BASE_URL}/orders/res-1`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ orderId: 'order-1', orderItems: [], status: 0 });
+    expect(received).toEqual(jasmine.objectContaining({ orderId: 'order-1' }));
+  });
+
+  it('getOwnerOrder$: без замовлення (404) повертає null, а не помилку', () => {
+    let received: unknown = 'unset';
+    service.getOwnerOrder$('res-1').subscribe((order) => (received = order));
+    http.expectOne(`${BASE_URL}/orders/res-1`).flush({ error: 'Not Found' }, { status: 404, statusText: 'Not Found' });
+    expect(received).toBeNull();
+  });
+
   it('getStatus$: GET /guest/groups/{id}/status', () => {
     service.getStatus$('grp-1').subscribe();
     const req = http.expectOne(`${BASE_URL}/guest/groups/grp-1/status`);

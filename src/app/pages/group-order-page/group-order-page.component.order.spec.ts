@@ -19,10 +19,11 @@ const INVITE = {
 describe('Сторінка Owner Review · порядок карток', () => {
   function renderedTitles(sessions: GroupSessionsResponse): (string | null | undefined)[] {
     const service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getOwnerOrder$', 'getStatus$',
     ]);
     service.getGroupInvite$.and.returnValue(of(INVITE));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
     service.getSessions$.and.returnValue(of(sessions));
     service.getStatus$.and.returnValue(of({ currentParticipants: 3, maxCapacity: 5, status: 'Open' as const }));
     TestBed.configureTestingModule({

@@ -78,9 +78,22 @@
     display: block;
   }
 
+  // The card grows by the button's height (gap + button) on hover. The negative bottom margin gives that
+  // height back to the grid, so the rows below stay put and only this card floats over its own padding.
+  &:hover,
+  &:focus-within {
+    margin-bottom: -3rem;
+    z-index: 3;
+  }
+
   @media (hover: none) {
     .dish-info app-custom-button {
       display: block;
+    }
+
+    &:hover,
+    &:focus-within {
+      margin-bottom: 0;
     }
   }
 

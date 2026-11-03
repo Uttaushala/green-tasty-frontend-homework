@@ -22,13 +22,14 @@ describe('Сторінка Owner Review · режим перегляду (<30 х
   function create(startOffsetMs: number) {
     const start = new Date(Date.now() + startOffsetMs).toISOString();
     const service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$', 'submit$', 'remind$', 'removeSession$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getOwnerOrder$', 'getStatus$', 'submit$', 'remind$', 'removeSession$',
     ]);
     service.getGroupInvite$.and.returnValue(
       of({ GroupReservationId: 'grp-1', LocationAddress: 'Addr', MaxGuestCount: 5, StartTime: start, EndTime: start } as GuestInvite),
     );
     service.getSessions$.and.returnValue(of(structuredClone(SESSIONS)));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
     service.getStatus$.and.returnValue(of({ currentParticipants: 2, maxCapacity: 5, status: 'Open' as const }));
     TestBed.configureTestingModule({
       imports: [GroupOrderPageComponent],

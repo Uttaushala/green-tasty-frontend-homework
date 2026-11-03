@@ -2,6 +2,7 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '@app/auth/skip-error-toast.context';
+import { Order } from '@app/models/orders/order.model';
 import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
 import { RemindGuestsRequest, RemindGuestsResponse } from '@app/models/group-orders/remind-guests.model';
 import { PreOrderProgress } from '@app/models/group-orders/pre-order-progress.model';
@@ -97,6 +98,15 @@ export class GroupOrdersService {
       `${this.baseUrl}/group-reservations/${encodeURIComponent(groupReservationId)}/reminders`,
       body,
     );
+  }
+
+  /** The owner's own pre-order (the reservation's regular order); null when there is none yet. */
+  getOwnerOrder$(reservationId: string): Observable<Order | null> {
+    return this.http
+      .get<Order>(`${this.baseUrl}/orders/${encodeURIComponent(reservationId)}`, {
+        context: this.context({ silent: true }),
+      })
+      .pipe(catchError(() => of(null)));
   }
 
   private groupUrl(groupReservationId: string): string {

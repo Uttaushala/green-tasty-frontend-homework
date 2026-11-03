@@ -52,11 +52,12 @@ describe('Рівень 2 · сторінка Owner Review', () => {
 
   beforeEach(() => {
     service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$', 'submit$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$', 'getOwnerOrder$', 'submit$',
     ]);
     service.getGroupInvite$.and.returnValue(of(INVITE));
     service.getSessions$.and.returnValue(of(structuredClone(SESSIONS)));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
     service.getStatus$.and.returnValue(of({ currentParticipants: 3, maxCapacity: 5, status: 'Open' as const }));
   });
 
@@ -72,6 +73,27 @@ describe('Рівень 2 · сторінка Owner Review', () => {
       expect(element.querySelectorAll('app-participant-card').length).toBe(3);
       expect(element.textContent).toContain('My Pre-Order');
       expect(element.textContent).toContain('Guest: Andrii');
+    });
+
+    it('власний заказ Owner з корзини потрапляє в «My Pre-Order», коли його сесія порожня', () => {
+      const emptyOwner = structuredClone(SESSIONS);
+      emptyOwner.participants[0] = { ...emptyOwner.participants[0], items: [], total: 0, isSubmitted: false };
+      service.getSessions$.and.returnValue(of(emptyOwner));
+      service.getOwnerOrder$.and.returnValue(
+        of({
+          orderId: 'order-1',
+          reservationId: 'res-1',
+          reservationAddress: 'Rustaveli Avenue 48',
+          reservationTime: 'Nov 5, 2026',
+          status: 3,
+          orderItems: [{ dish: { ...tomYum, imageUrl: '', weight: '', state: 'Available' } as never, quantity: 2, state: 0 }],
+        }),
+      );
+
+      const { element } = create();
+
+      expect(service.getOwnerOrder$).toHaveBeenCalledWith('res-1');
+      expect(element.querySelector('app-participant-card')?.textContent).toContain('Tom Yum');
     });
 
     it('бейдж статусу: «Collecting pre-orders»', () => {
