@@ -88,9 +88,17 @@ export class CustomerReservationCardComponent {
   readonly showProgress = computed(() => this.isGroup());
 
   /** Submitted pre-orders; without a group on the server only the owner's own order can exist. */
-  readonly submittedCount = computed(
-    () => this.progress()?.submitted ?? (this.reservation().hasSubmittedPreOrder === true ? 1 : 0),
-  );
+  readonly submittedCount = computed(() => {
+    const current = this.progress();
+    const ownerOrderSent = this.reservation().hasSubmittedPreOrder === true;
+
+    if (!current) {
+      return ownerOrderSent ? 1 : 0;
+    }
+
+    // The owner sends the order through the cart, which the owner's group session does not know about.
+    return current.submitted + (ownerOrderSent && !current.ownerSubmitted ? 1 : 0);
+  });
 
   readonly progressOver = computed(() => this.submittedCount() > this.reservation().guestCount);
 

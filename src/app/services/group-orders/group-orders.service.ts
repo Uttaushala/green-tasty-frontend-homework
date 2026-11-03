@@ -58,6 +58,7 @@ export class GroupOrdersService {
         switchMap((invite) => this.getSessions$(invite.GroupReservationId, { silent: true })),
         map((sessions) => ({
           submitted: sessions.participants.filter((person) => person.isSubmitted).length,
+          ownerSubmitted: sessions.participants.some((person) => person.type === 'Owner' && person.isSubmitted),
           guestsJoined: sessions.participants.filter((person) => person.type === 'Guest').length,
         })),
         catchError(() => of(null)),

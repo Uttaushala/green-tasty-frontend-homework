@@ -56,14 +56,14 @@ describe('CustomerReservationCardComponent', () => {
   afterEach(() => localStorage.clear());
 
   it('shows Add Pre-Order while the owner has not submitted', async () => {
-    const host = render(buildReservation(), { submitted: 1, guestsJoined: 1 });
+    const host = render(buildReservation(), { submitted: 1, ownerSubmitted: false, guestsJoined: 1 });
     await settle();
 
     expect(host.querySelector('.actions')?.textContent).toContain('Add Pre-Order');
   });
 
   it('shows only Group Pre-Order once the owner has submitted a group reservation', async () => {
-    const host = render(buildReservation({ hasSubmittedPreOrder: true }), { submitted: 1, guestsJoined: 1 });
+    const host = render(buildReservation({ hasSubmittedPreOrder: true }), { submitted: 1, ownerSubmitted: true, guestsJoined: 1 });
     await settle();
 
     const text = host.querySelector('.actions')?.textContent ?? '';
@@ -72,7 +72,7 @@ describe('CustomerReservationCardComponent', () => {
   });
 
   it('shows both buttons when guests joined but the owner has not submitted yet', async () => {
-    const host = render(buildReservation(), { submitted: 0, guestsJoined: 2 });
+    const host = render(buildReservation(), { submitted: 0, ownerSubmitted: false, guestsJoined: 2 });
     await settle();
 
     const text = host.querySelector('.actions')?.textContent ?? '';
@@ -81,7 +81,7 @@ describe('CustomerReservationCardComponent', () => {
   });
 
   it('shows only Add Pre-Order when nobody has joined the group yet', async () => {
-    const host = render(buildReservation(), { submitted: 0, guestsJoined: 0 });
+    const host = render(buildReservation(), { submitted: 0, ownerSubmitted: false, guestsJoined: 0 });
     await settle();
 
     const text = host.querySelector('.actions')?.textContent ?? '';
@@ -90,7 +90,7 @@ describe('CustomerReservationCardComponent', () => {
   });
 
   it('renders the submitted/total counter for a group', async () => {
-    const host = render(buildReservation(), { submitted: 3, guestsJoined: 3 });
+    const host = render(buildReservation(), { submitted: 3, ownerSubmitted: false, guestsJoined: 3 });
     await settle();
 
     expect(host.querySelector('.progress')?.textContent?.replace(/\s/g, '')).toBe('3/4');
@@ -120,15 +120,37 @@ describe('CustomerReservationCardComponent', () => {
   });
 
   it('hides the invite row and paints the counter red once every seat has a pre-order', async () => {
-    const host = render(buildReservation({ hasSubmittedPreOrder: true }), { submitted: 4, guestsJoined: 3 });
+    const host = render(buildReservation({ hasSubmittedPreOrder: true }), { submitted: 4, ownerSubmitted: true, guestsJoined: 3 });
     await settle();
 
     expect(host.querySelector('.share')).toBeNull();
     expect(host.querySelector('.progress strong')?.classList).toContain('over');
   });
 
+  it('counts the owner whose order was sent through the cart but is missing in the group session', async () => {
+    const host = render(buildReservation({ guestCount: 2, hasSubmittedPreOrder: true }), {
+      submitted: 1,
+      ownerSubmitted: false,
+      guestsJoined: 1,
+    });
+    await settle();
+
+    expect(host.querySelector('.progress')?.textContent?.replace(/\s/g, '')).toBe('2/2');
+  });
+
+  it('does not count the owner twice when the group session already has the owner submitted', async () => {
+    const host = render(buildReservation({ guestCount: 2, hasSubmittedPreOrder: true }), {
+      submitted: 2,
+      ownerSubmitted: true,
+      guestsJoined: 1,
+    });
+    await settle();
+
+    expect(host.querySelector('.progress')?.textContent?.replace(/\s/g, '')).toBe('2/2');
+  });
+
   it('keeps the invite row and a neutral counter while seats are free', async () => {
-    const host = render(buildReservation(), { submitted: 3, guestsJoined: 2 });
+    const host = render(buildReservation(), { submitted: 3, ownerSubmitted: false, guestsJoined: 2 });
     await settle();
 
     expect(host.querySelector('.share')).not.toBeNull();
@@ -138,6 +160,7 @@ describe('CustomerReservationCardComponent', () => {
   it('does not paint a full counter red after the visit', async () => {
     const host = render(buildReservation({ status: ReservationStatusCustomer.Finished }), {
       submitted: 4,
+      ownerSubmitted: false,
       guestsJoined: 3,
     });
     await settle();
@@ -148,6 +171,7 @@ describe('CustomerReservationCardComponent', () => {
   it('keeps the pre-order counter on a cancelled group reservation', async () => {
     const host = render(buildReservation({ status: ReservationStatusCustomer.Cancelled }), {
       submitted: 1,
+      ownerSubmitted: false,
       guestsJoined: 1,
     });
     await settle();
@@ -164,7 +188,7 @@ describe('CustomerReservationCardComponent', () => {
   });
 
   it('shows the orange dot only when more guests joined than were seen', async () => {
-    const host = render(buildReservation(), { submitted: 1, guestsJoined: 2 });
+    const host = render(buildReservation(), { submitted: 1, ownerSubmitted: false, guestsJoined: 2 });
     await settle();
     expect(host.querySelector('.dot')).not.toBeNull();
 
@@ -226,7 +250,7 @@ describe('CustomerReservationCardComponent', () => {
   });
 
   it('opens the group order route', async () => {
-    render(buildReservation({ hasSubmittedPreOrder: true }), { submitted: 1, guestsJoined: 1 });
+    render(buildReservation({ hasSubmittedPreOrder: true }), { submitted: 1, ownerSubmitted: true, guestsJoined: 1 });
     const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
 
     fixture.componentInstance.onGroupOrder();
