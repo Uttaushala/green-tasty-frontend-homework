@@ -243,38 +243,6 @@
   }
 }
 
-.consolidated {
-  margin-top: 4px;
-  padding: 16px;
-  background: color.$neutral-0;
-  border-radius: 12px;
-}
-
-.consolidated-title {
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 28px;
-}
-
-.consolidated-list {
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.consolidated-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 0;
-  overflow-wrap: anywhere;
-}
-
-.consolidated-empty {
-  margin-top: 8px;
-  color: color.$neutral-600;
-}
-
 .button--disabled-look,
 .footer .button:disabled {
   color: color.$neutral-0;

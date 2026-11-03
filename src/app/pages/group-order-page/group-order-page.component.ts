@@ -5,9 +5,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, Subject, catchError, exhaustMap, filter, forkJoin, merge, of, switchMap, timer } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, exhaustMap, filter, forkJoin, merge, of, switchMap, timer } from 'rxjs';
 import { ParticipantCardComponent } from '@app/components/group-orders/participant-card/participant-card.component';
 import { GroupReservationStatus } from '@app/models/group-orders/group-status.model';
+import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
 import { Participant } from '@app/models/group-orders/participant.model';
 import { Order } from '@app/models/orders/order.model';
 import { RemindGuestsResponse } from '@app/models/group-orders/remind-guests.model';
@@ -69,8 +70,10 @@ export class GroupOrderPageComponent {
   readonly submitting = signal(false);
   readonly guestToRemove = signal<Participant | null>(null);
   readonly removing = signal(false);
-  /** Dish id currently being quantity-changed or removed from "My Pre-Order", so its row can disable itself. */
+  /** Dish id currently being quantity-changed or removed, so its row can disable itself. */
   readonly mutatingItemId = signal<string | null>(null);
+  /** Participant id whose card owns the in-flight `mutatingItemId` edit. */
+  readonly mutatingParticipantId = signal<string | null>(null);
   /** id гостя (або ALL_GUESTS), якому зараз відправляється нагадування. */
   readonly remindingTarget = signal<string | null>(null);
 
@@ -102,7 +105,6 @@ export class GroupOrderPageComponent {
   );
   readonly canRemind = computed(() => !this.isSent() && !this.viewMode() && this.status() === 'Open');
   readonly allReminding = computed(() => this.remindingTarget() === ALL_GUESTS);
-  readonly hasAnyDishes = computed(() => this.participants().some((person) => person.items.length > 0));
   readonly canSubmit = computed(
     () => !this.isSent() && !this.viewMode() && !this.submitting() && this.consolidated().items.length > 0,
   );
@@ -176,30 +178,43 @@ export class GroupOrderPageComponent {
     void this.router.navigate(['/menu'], { queryParams });
   }
 
-  /** Inline +/- on a "My Pre-Order" row: PUT the owner's order back with the new quantity. */
-  updateMyItemQuantity(dishId: string, quantity: number): void {
+  /** Inline +/- on a pre-order row: the owner's own card PUTs their order back; a guest's card
+   * goes through the owner-only group-session endpoint instead. */
+  updateItemQuantity(person: Participant, dishId: string, quantity: number): void {
     if (quantity < 1) {
       return;
     }
-    this.mutateOwnerOrder(dishId, (order) => ({
-      ...order,
-      orderItems: order.orderItems.map((item) => (item.dish.id === dishId ? { ...item, quantity } : item)),
-    }));
+    if (person.id === this.ownerSessionId()) {
+      this.mutateOwnerOrder(dishId, (order) => ({
+        ...order,
+        orderItems: order.orderItems.map((item) => (item.dish.id === dishId ? { ...item, quantity } : item)),
+      }));
+    } else {
+      this.mutateGuestSession(person, dishId, () =>
+        this.groupOrdersService.setGuestDishQuantity$(this.groupId(), person.id, dishId, quantity),
+      );
+    }
   }
 
-  /** Inline trash on a "My Pre-Order" row: PUT the owner's order back without that dish. */
-  removeMyItem(dishId: string): void {
-    this.mutateOwnerOrder(dishId, (order) => ({
-      ...order,
-      orderItems: order.orderItems.filter((item) => item.dish.id !== dishId),
-    }));
+  /** Inline trash on a pre-order row: the owner's own card PUTs their order back without that dish;
+   * a guest's card goes through the owner-only group-session endpoint instead. */
+  removeItem(person: Participant, dishId: string): void {
+    if (person.id === this.ownerSessionId()) {
+      this.mutateOwnerOrder(dishId, (order) => ({
+        ...order,
+        orderItems: order.orderItems.filter((item) => item.dish.id !== dishId),
+      }));
+    } else {
+      this.mutateGuestSession(person, dishId, () => this.groupOrdersService.removeGuestDish$(this.groupId(), person.id, dishId));
+    }
   }
 
   private mutateOwnerOrder(dishId: string, updateFn: (order: Order) => Order): void {
     const order = this.ownerOrder();
-    if (!order || this.mutatingItemId() !== null) {
+    if (!order || this.mutatingParticipantId() !== null) {
       return;
     }
+    this.mutatingParticipantId.set(this.ownerSessionId());
     this.mutatingItemId.set(dishId);
 
     this.preOrdersService
@@ -207,12 +222,40 @@ export class GroupOrderPageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          this.mutatingParticipantId.set(null);
           this.mutatingItemId.set(null);
           // Not refresh(): that's gated to status === 'Open', but editing stays allowed after Submitted too.
           this.load();
         },
         // toast з текстом помилки вже показав tokenInterceptor
-        error: () => this.mutatingItemId.set(null),
+        error: () => {
+          this.mutatingParticipantId.set(null);
+          this.mutatingItemId.set(null);
+        },
+      });
+  }
+
+  private mutateGuestSession(person: Participant, dishId: string, request: () => Observable<GroupSessionsResponse>): void {
+    if (this.mutatingParticipantId() !== null) {
+      return;
+    }
+    this.mutatingParticipantId.set(person.id);
+    this.mutatingItemId.set(dishId);
+
+    request()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        // список і суми оновлюються з відповіді сервера — через ті самі computed()
+        next: (response) => {
+          this.participants.set(response.participants);
+          this.mutatingParticipantId.set(null);
+          this.mutatingItemId.set(null);
+        },
+        // toast з текстом помилки вже показав tokenInterceptor
+        error: () => {
+          this.mutatingParticipantId.set(null);
+          this.mutatingItemId.set(null);
+        },
       });
   }
 

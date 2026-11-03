@@ -110,23 +110,12 @@ describe('Рівень 2 · сторінка Owner Review', () => {
       expect(text).not.toContain('$760');
     });
 
-    it('однакові страви — одним рядком: «Caesar Salad × 3»', () => {
-      expect(create().element.textContent).toContain('Caesar Salad × 3');
-    });
-
     it('жовта плашка: «1 participant hasn’t submitted…»', () => {
       expect(create().element.textContent).toMatch(/1 participant hasn.t submitted/);
     });
   });
 
   describe('стани екрана', () => {
-    it('порожньо: «Participants haven’t added any dishes yet»', () => {
-      const empty = structuredClone(SESSIONS);
-      empty.participants.forEach((p) => (p.items = []));
-      service.getSessions$.and.returnValue(of(empty));
-      expect(create().element.textContent).toMatch(/Participants haven.t added any dishes yet/);
-    });
-
     it('404: «Group reservation not found»', () => {
       service.getGroupInvite$.and.returnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
       expect(create().element.textContent).toContain('Group reservation not found');

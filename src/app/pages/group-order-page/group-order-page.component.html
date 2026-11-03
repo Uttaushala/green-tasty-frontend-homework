@@ -94,37 +94,19 @@
             [isMe]="person.id === ownerSessionId()"
             [canRemove]="person.type === 'Guest' && !isSent() && !viewMode()"
             [canEdit]="person.id === ownerSessionId() && !viewMode()"
-            [canEditItems]="person.id === ownerSessionId() && !viewMode()"
-            [mutatingDishId]="person.id === ownerSessionId() ? mutatingItemId() : null"
+            [canEditItems]="!viewMode() && (person.id === ownerSessionId() || !isSent())"
+            [mutatingDishId]="mutatingParticipantId() === person.id ? mutatingItemId() : null"
             (editClick)="editMyPreOrder()"
             [canRemind]="canRemind() && person.type === 'Guest' && !person.isSubmitted"
             [reminding]="remindingTarget() === person.id || allReminding()"
             (removeClick)="askRemoveGuest($event)"
             (remindClick)="remind($event)"
-            (itemQuantityChange)="updateMyItemQuantity($event.dishId, $event.quantity)"
-            (itemRemove)="removeMyItem($event)"
+            (itemQuantityChange)="updateItemQuantity(person, $event.dishId, $event.quantity)"
+            (itemRemove)="removeItem(person, $event)"
           />
         </li>
       }
     </ul>
-
-    <section class="consolidated" aria-labelledby="consolidated-title">
-      <h2 id="consolidated-title" class="consolidated-title">Consolidated pre-order</h2>
-      @if (consolidated().items.length) {
-        <ul class="consolidated-list">
-          @for (item of consolidated().items; track item.dish.id) {
-            <li class="consolidated-item">
-              <span>{{ item.dish.name }} × {{ item.quantity }}</span>
-              <span>{{ item.dish.price * item.quantity | price }}</span>
-            </li>
-          }
-        </ul>
-      } @else if (!hasAnyDishes()) {
-        <p class="consolidated-empty">Participants haven’t added any dishes yet</p>
-      } @else {
-        <p class="consolidated-empty">No submitted carts yet — nothing to send to the restaurant</p>
-      }
-    </section>
     </div>
 
     <footer class="footer">

@@ -69,9 +69,16 @@ describe('Inline qty stepper + trash on My Pre-Order', () => {
     ) as HTMLElement;
   }
 
+  function guestCard(element: HTMLElement): HTMLElement {
+    return [...element.querySelectorAll('app-participant-card')].find((card) =>
+      card.textContent?.includes('Andrii'),
+    ) as HTMLElement;
+  }
+
   beforeEach(() => {
     groupService = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
       'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getOwnerOrder$', 'getStatus$',
+      'setGuestDishQuantity$', 'removeGuestDish$',
     ]);
     groupService.getGroupInvite$.and.returnValue(of(INVITE));
     groupService.getSessions$.and.returnValue(of(structuredClone(SESSIONS)));
@@ -91,15 +98,56 @@ describe('Inline qty stepper + trash on My Pre-Order', () => {
     expect(card.querySelector('.qty')).toBeFalsy();
   });
 
-  it('a guest row keeps the plain "Qty: n" text, no stepper or trash', () => {
+  it('a guest row also shows a trash icon and a +/- stepper, not "Qty: n"', () => {
     const { element } = create();
-    const guestCard = [...element.querySelectorAll('app-participant-card')].find((card) =>
-      card.textContent?.includes('Andrii'),
-    ) as HTMLElement;
+    const card = guestCard(element);
 
-    expect(guestCard.querySelector('.qty')?.textContent?.trim()).toBe('Qty: 2');
-    expect(guestCard.querySelector('.stepper')).toBeFalsy();
-    expect(guestCard.querySelector('.item-delete')).toBeFalsy();
+    expect(card.querySelector('.item-delete')).toBeTruthy();
+    expect(card.querySelector('.stepper')).toBeTruthy();
+    expect(card.querySelector('.qty')).toBeFalsy();
+  });
+
+  it('"+" on a guest row PUTs the owner-only endpoint and refreshes the list from the response', () => {
+    const updated: GroupSessionsResponse = {
+      participants: [
+        SESSIONS.participants[0],
+        { ...SESSIONS.participants[1], items: [{ dish: caesar, quantity: 3 }], total: 540 },
+      ],
+      total: 540,
+    };
+    groupService.setGuestDishQuantity$.and.returnValue(of(updated));
+    const { fixture, element } = create();
+
+    guestCard(element).querySelector<HTMLButtonElement>('.icon-button--outlined')!.click();
+    fixture.detectChanges();
+
+    expect(groupService.setGuestDishQuantity$).toHaveBeenCalledOnceWith('grp-1', 'andrii', 'dish1', 3);
+    expect(guestCard(element).textContent).toContain('3');
+  });
+
+  it('trash on a guest row removes the dish via the owner-only endpoint', () => {
+    const updated: GroupSessionsResponse = {
+      participants: [SESSIONS.participants[0], { ...SESSIONS.participants[1], items: [], total: 0 }],
+      total: 0,
+    };
+    groupService.removeGuestDish$.and.returnValue(of(updated));
+    const { fixture, element } = create();
+
+    guestCard(element).querySelector<HTMLButtonElement>('.item-delete')!.click();
+    fixture.detectChanges();
+
+    expect(groupService.removeGuestDish$).toHaveBeenCalledOnceWith('grp-1', 'andrii', 'dish1');
+    expect(guestCard(element).textContent).not.toContain('Caesar Salad');
+  });
+
+  it('a failed guest-row request leaves the row usable again (button re-enabled, no crash)', () => {
+    groupService.setGuestDishQuantity$.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const { fixture, element } = create();
+
+    guestCard(element).querySelector<HTMLButtonElement>('.icon-button--outlined')!.click();
+    fixture.detectChanges();
+
+    expect(guestCard(element).querySelector<HTMLButtonElement>('.icon-button--outlined')!.disabled).toBeFalse();
   });
 
   it('"+" PUTs the owner order with the quantity incremented and reloads the page', () => {

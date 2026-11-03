@@ -92,6 +92,26 @@ export class GroupOrdersService {
     );
   }
 
+  /** Owner's +/- stepper on a guest's card: sets that dish to an absolute quantity. */
+  setGuestDishQuantity$(
+    groupReservationId: string,
+    guestSessionId: string,
+    dishId: string,
+    quantity: number,
+  ): Observable<GroupSessionsResponse> {
+    return this.http.put<GroupSessionsResponse>(
+      `${this.groupUrl(groupReservationId)}/sessions/${encodeURIComponent(guestSessionId)}/dishes/${encodeURIComponent(dishId)}`,
+      { quantity },
+    );
+  }
+
+  /** Owner's trash icon on a guest's card: removes that dish from the guest's cart entirely. */
+  removeGuestDish$(groupReservationId: string, guestSessionId: string, dishId: string): Observable<GroupSessionsResponse> {
+    return this.http.delete<GroupSessionsResponse>(
+      `${this.groupUrl(groupReservationId)}/sessions/${encodeURIComponent(guestSessionId)}/dishes/${encodeURIComponent(dishId)}`,
+    );
+  }
+
   /** Owner нагадує гостям, які ще не підтвердили кошик: одному (guestSessionId) або всім одразу. */
   remind$(groupReservationId: string, guestSessionId?: string): Observable<RemindGuestsResponse> {
     const body: RemindGuestsRequest = guestSessionId ? { guestSessionId } : {};
