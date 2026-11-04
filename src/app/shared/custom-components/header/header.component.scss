@@ -562,6 +562,10 @@
 @media (min-width: 769px) {
   .header {
     position: relative;
+    // .header-user-wrapper below is transformed, so it opens its own stacking context;
+    // without a z-index here that context ranks as "auto" and loses to page content
+    // that sets an explicit z-index (e.g. hero-overlay), letting it paint over the dropdown.
+    z-index: 10;
     box-sizing: border-box;
     height: 68px;
     padding: 0 24px 0 16px;
