@@ -2,38 +2,41 @@ import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
 import {
   Component,
+  computed,
   inject,
   Input,
   OnInit,
   ChangeDetectionStrategy,
   signal,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { DatePipe } from '@angular/common';
 import { OrderItem } from '@app/models/dishes/order-item.model';
-import { DishCardComponent } from '@app/shared/custom-components/dish-card/dish-card.component';
 import { firstValueFrom } from 'rxjs';
 import { WaiterPreOrderState } from '@app/models/orders/order.model';
-import { CustomButtonComponent } from '@app/shared/custom-components/custom-button/custom-button.component';
+import { PricePipe } from '@app/shared/pipes/price.pipe';
 
 /** Order.status values relevant to this page (see backend OrderStatus). */
 const ORDER_STATUS_SUBMITTED_BY_WAITER = 1;
 
 @Component({
   selector: 'app-waiter-pre-order-page',
-  imports: [DishCardComponent, RouterLink, CustomButtonComponent],
+  imports: [DatePipe, PricePipe],
   templateUrl: './waiter-pre-order-page.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './waiter-pre-order-page.component.scss',
 })
 export class WaiterPreOrderPageComponent implements OnInit {
-  reservationLabel = '';
   orderItems: OrderItem[] = [];
 
   reservationId = '';
   createdByName = '';
   createdByRole = '';
   tableName = '';
-  reservationTime = '';
+  locationAddress = '';
+  startTime = '';
+  endTime = '';
+  guestCount = 0;
   @Input() customClass = '';
 
   /** Once the waiter has reviewed every dish, the order is auto-submitted and this page locks. */
@@ -42,7 +45,9 @@ export class WaiterPreOrderPageComponent implements OnInit {
   /** Dish id with a confirm/reject request in flight — its row disables while it resolves. */
   readonly mutatingDishId = signal<string | null>(null);
 
-  private route = inject(ActivatedRoute);
+  readonly hasRejected = computed(() => this.orderItems.some((item) => item.state === 2));
+  readonly allReviewed = computed(() => this.orderItems.every((item) => item.state !== 0));
+
   private router = inject(Router);
   private toast = inject(ToastService);
 
@@ -71,11 +76,14 @@ export class WaiterPreOrderPageComponent implements OnInit {
     this.createdByRole = data.createdByRole;
     this.tableName = data.tableName;
     this.reservationId = data.reservationId;
+    this.locationAddress = data.locationAddress ?? '';
+    this.startTime = data.startTime ?? '';
+    this.endTime = data.endTime ?? '';
+    this.guestCount = data.guestCount ?? 0;
 
     firstValueFrom(this.preOrdersService.getByReservationId(data.reservationId))
       .then((order) => {
         this.orderItems = order.orderItems ?? [];
-        this.reservationTime = order.reservationTime || '';
         this.viewMode.set(order.status === ORDER_STATUS_SUBMITTED_BY_WAITER);
       })
       .catch(() => {
@@ -92,6 +100,12 @@ export class WaiterPreOrderPageComponent implements OnInit {
     this.reviewDish(dishId, 2, () => this.preOrdersService.rejectDishInOrder(this.reservationId, dishId));
   }
 
+  /** Figma "Submit Pre-order": once every dish has been reviewed, it just closes the page —
+   * the last confirm/reject call already told the backend to send the order back to the owner. */
+  close(): void {
+    void this.router.navigate(['/waiter-reservations']);
+  }
+
   private reviewDish(dishId: string, newState: number, request: () => ReturnType<PreOrdersService['confirmDishInOrder']>): void {
     if (this.viewMode() || this.mutatingDishId() !== null) {
       return;
@@ -105,7 +119,7 @@ export class WaiterPreOrderPageComponent implements OnInit {
         );
         this.mutatingDishId.set(null);
 
-        if (this.orderItems.every((item) => item.state !== 0)) {
+        if (this.allReviewed()) {
           this.viewMode.set(true);
           this.toast.success('All dishes reviewed — the pre-order has been sent back to the owner.', 'Pre-order');
         }

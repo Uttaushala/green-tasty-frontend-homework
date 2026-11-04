@@ -32,6 +32,10 @@ const NAV_STATE: WaiterPreOrderState = {
   createdByName: 'Jasmine Smith',
   createdByRole: 'Customer',
   tableName: '4',
+  locationAddress: 'Rustaveli Avenue 48',
+  startTime: '2026-11-04T10:45:00Z',
+  endTime: '2026-11-04T12:15:00Z',
+  guestCount: 2,
 };
 
 describe('WaiterPreOrderPageComponent', () => {

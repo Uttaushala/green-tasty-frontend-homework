@@ -1,49 +1,98 @@
-<nav class="breadcrumb">
-  <a class="breadcrumb-link" routerLink="/waiter-reservations">Reservations</a>
-  <span class="breadcrumb-separator">›</span>
-  <span class="breadcrumb-current">Pre-order</span>
-</nav>
+<div class="page">
+  <div class="panel">
+    <button type="button" class="close-button" aria-label="Close" (click)="close()">
+      <img src="assets/svg/close.svg" alt="" aria-hidden="true" />
+    </button>
 
-@if (loading()) {
-  <p class="state">Loading pre-order…</p>
-} @else if (!orderItems.length) {
-  <p class="state">This pre-order has no dishes.</p>
-} @else {
-  <h2 class="title">
-    Pre-order of {{ createdByRole.toLowerCase() }} {{ createdByName }}, Table {{ tableName }} ({{
-      reservationTime
-    }})
-  </h2>
-
-  @if (viewMode()) {
-    <p class="view-mode-notice" role="status">
-      Every dish has been reviewed. This pre-order was sent back to the owner and can no longer be changed here.
-    </p>
-  }
-
-  <div class="preorder-list">
-    @for (item of orderItems; track item.dish.id) {
-      <app-dish-card [dish]="item.dish" class="pre-order-dish">
-        <div dish-footer class="pre-order-footer">
-          <div class="pre-order-quantity">Quantity: {{ item.quantity }}</div>
-          <div class="preorder-actions">
-            <app-custom-button
-              class="btn-cancel"
-              (click)="rejectDish(item.dish.id)"
-              [disabled]="viewMode() || item.state === 2 || mutatingDishId() === item.dish.id"
-            >
-              Cancel
-            </app-custom-button>
-            <app-custom-button
-              class="btn-confirm"
-              (click)="confirmDish(item.dish.id)"
-              [disabled]="viewMode() || item.state === 1 || mutatingDishId() === item.dish.id"
-            >
-              Confirm
-            </app-custom-button>
-          </div>
+    @if (loading()) {
+      <p class="state">Loading pre-order…</p>
+    } @else if (!orderItems.length) {
+      <p class="state">This pre-order has no dishes.</p>
+    } @else {
+      <header class="header">
+        <div class="heading-row">
+          <h1 class="title">Reservation Pre-Order</h1>
+          <span class="badge" [class.badge--confirmed]="viewMode() && !hasRejected()">
+            {{ viewMode() ? (hasRejected() ? 'Reviewed by Restaurant' : 'Confirmed by Restaurant') : (createdByRole === 'Waiter' ? 'Created by Waiter' : 'Created by Customer') }}
+          </span>
         </div>
-      </app-dish-card>
+
+        <ul class="meta">
+          <li class="meta-item">
+            <img src="assets/svg/location-green.svg" alt="" aria-hidden="true" />
+            {{ locationAddress || 'Table ' + tableName }}
+          </li>
+          <li class="meta-item">
+            <img src="assets/svg/calendar-green.svg" alt="" aria-hidden="true" />
+            {{ startTime | date: 'mediumDate' }}
+          </li>
+          <li class="meta-item">
+            <img src="assets/svg/clock-green.svg" alt="" aria-hidden="true" />
+            {{ startTime | date: 'HH:mm' }} - {{ endTime | date: 'HH:mm' }}
+          </li>
+          <li class="meta-item">
+            <img src="assets/svg/people-green.svg" alt="" aria-hidden="true" />
+            {{ guestCount }} {{ guestCount === 1 ? 'Guest' : 'Guests' }}
+          </li>
+        </ul>
+      </header>
+
+      @if (hasRejected()) {
+        <p class="notice" role="status">
+          <img src="assets/svg/bell-regular.svg" alt="" aria-hidden="true" />
+          Some items were rejected. Owner will be notified about it.
+        </p>
+      }
+
+      <section class="participant-card">
+        <h2 class="participant-name">{{ createdByRole === 'Waiter' ? 'Waiter' : 'Owner' }}: {{ createdByName }}</h2>
+
+        <ul class="items">
+          @for (item of orderItems; track item.dish.id) {
+            <li class="item" [class.item--rejected]="item.state === 2">
+              @if (item.dish.imageUrl) {
+                <img class="avatar" [src]="item.dish.imageUrl" alt="" width="48" height="48" loading="lazy" />
+              } @else {
+                <span class="avatar initial" aria-hidden="true">{{ item.dish.name.charAt(0) }}</span>
+              }
+
+              <div class="item-info">
+                <p class="name">{{ item.dish.name }}</p>
+                <p class="qty">Qty: {{ item.quantity }}</p>
+              </div>
+
+              <p class="price">{{ item.dish.price * item.quantity | price }}</p>
+
+              <div class="item-actions">
+                <button
+                  type="button"
+                  class="icon-button icon-button--small reject-button"
+                  [class.reject-button--active]="item.state === 2"
+                  aria-label="Reject {{ item.dish.name }}"
+                  [disabled]="viewMode() || mutatingDishId() === item.dish.id"
+                  (click)="rejectDish(item.dish.id)"
+                >
+                  <img src="assets/svg/x-mark.svg" alt="" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  class="icon-button icon-button--small confirm-button"
+                  [class.confirm-button--active]="item.state === 1"
+                  aria-label="Confirm {{ item.dish.name }}"
+                  [disabled]="viewMode() || mutatingDishId() === item.dish.id"
+                  (click)="confirmDish(item.dish.id)"
+                >
+                  <img src="assets/svg/check-mark.svg" alt="" aria-hidden="true" />
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <button type="button" class="button button--primary button--extra-large submit-button" [disabled]="!allReviewed()" (click)="close()">
+        Submit Pre-order
+      </button>
     }
   </div>
-}
+</div>
