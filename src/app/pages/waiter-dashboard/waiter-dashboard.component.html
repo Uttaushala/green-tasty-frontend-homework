@@ -82,7 +82,7 @@
         [availableTableOptionsMap]="card.availableTableOptionsMap"
         [createdByName]="card.reservation.createdByName"
         [createdByRole]="card.reservation.createdByRole"
-        (cancelReservation)="cancelReservation($event)"
+        (cancelReservation)="requestCancel($event)"
         (postponeReservation)="onPostponeReservation($event)"
         (statusChanged)="onReservationStatusChanged($event)"
         (tableChanged)="onReservationTableChanged($event)"
@@ -91,6 +91,19 @@
       />
     }
   </ul>
+}
+
+@if (reservationToCancel()) {
+  <app-modal title="Cancel Reservation" width="520px" (closed)="closeCancelDialog()">
+    <p class="dialog-text">
+      Cancelling this reservation will remove all pre-orders.<br />
+      You won't be able to undo this action.
+    </p>
+    <div modal-actions class="dialog-actions">
+      <button type="button" class="button button--tertiary button--large" (click)="closeCancelDialog()">Keep it</button>
+      <button type="button" class="button button--secondary button--large danger" (click)="confirmCancel()">Cancel</button>
+    </div>
+  </app-modal>
 }
 
 @if (showPostponeModal()) {

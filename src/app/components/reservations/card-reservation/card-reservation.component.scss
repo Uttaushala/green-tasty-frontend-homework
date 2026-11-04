@@ -4,14 +4,61 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 
   height: 100%;
-  padding: 1.5rem;
+  overflow: hidden;
 
   background-color: color.$neutral-0;
   border-radius: 1.5rem;
   box-shadow: 0 0 10px 4px color.$shadow;
+}
+
+// Figma: Reservations. With/without pre-order — the card's status strip.
+.status-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 10px;
+
+  color: color.$neutral-900;
+  background-color: color.$neutral-100;
+
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  &.reserved {
+    background-color: color.$blue-100;
+  }
+
+  &.in-progress {
+    background-color: color.$orange-100;
+  }
+
+  &.finished {
+    background-color: color.$green-100;
+  }
+
+  &.canceled {
+    background-color: color.$red-100;
+  }
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: color.$orange-400;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  flex: 1;
+  padding: 1.5rem;
 
   .details-line {
     display: flex;
@@ -31,6 +78,10 @@
         flex: 0 0 auto;
         width: 1rem;
         height: 1rem;
+      }
+
+      &.name {
+        font-weight: 600;
       }
     }
 
@@ -94,7 +145,7 @@
   justify-content: flex-end;
   gap: 1rem;
 
-  margin-top: 5rem;
+  margin-top: 1.5rem;
   margin-left: auto;
 
   @media (max-width: 837px) {
@@ -103,7 +154,6 @@
     justify-content: flex-start;
     align-self: flex-start;
 
-    margin-top: 3rem;
     margin-left: 0;
   }
 }
@@ -115,6 +165,12 @@
   padding-left: 1rem;
 
   font-size: 14px;
+}
+
+.table-label {
+  margin-left: auto;
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .with-table {
