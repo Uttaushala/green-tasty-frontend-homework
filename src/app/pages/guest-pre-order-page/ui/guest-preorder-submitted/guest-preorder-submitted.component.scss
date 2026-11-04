@@ -3,8 +3,9 @@
 .page {
     min-height: calc(100vh - 66px);
     display: grid;
-    place-items: center;
-    padding: 16px;
+    // Figma: the card sits right under the header rather than in the middle of the screen.
+    place-items: start center;
+    padding: 21px 16px 16px;
     background: color.$bg-yellow;
     box-sizing: border-box;
 }
@@ -14,7 +15,7 @@
     background: color.$neutral-0;
     border-radius: 24px;
     padding: 40px;
-    box-shadow: 0 0 5px rgba(color.$neutral-200, 0.7);
+    box-shadow: 0 0 10px 4px color.$shadow;
     text-align: center;
     box-sizing: border-box;
 }
@@ -26,7 +27,7 @@
 }
 
 h1 {
-    margin: 0 0 16px;
+    margin: 0 0 20px;
     font-size: 32px;
     line-height: 40px;
     font-weight: 500;
@@ -47,7 +48,7 @@ h1 {
 .divider {
     height: 1px;
     margin: 20px 0;
-    background: color.$neutral-200;
+    background: color.$neutral-100;
 }
 
 .details {
@@ -94,7 +95,7 @@ h3 {
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 24px;
 }
 

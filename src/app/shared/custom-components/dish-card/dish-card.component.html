@@ -16,12 +16,12 @@
       <div class="dish-heading">
         <div class="dish-name">{{ dish().name }}</div>
         <div class="dish-meta">
-          <span class="dish-price">{{ dish().price | currency: '$' }}</span>
+          <span class="dish-price">{{ dish().price | price }}</span>
           <span class="dish-weight">{{ dish().weight }}</span>
         </div>
       </div>
       @if (preOrderEnabled()) {
-        <app-custom-button size="small" fullWidth [disabled]="isUnavailable()" (click)="onPreOrderClicked($event)">
+        <app-custom-button size="large" fullWidth [disabled]="isUnavailable()" (click)="onPreOrderClicked($event)">
           Pre-Order
         </app-custom-button>
       }

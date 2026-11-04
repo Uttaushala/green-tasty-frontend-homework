@@ -15,10 +15,10 @@ export interface ToastData {
         <img src="assets/svg/check-circle.svg" alt="" class="toast-icon" />
       }
       <div class="toast-text">
-        @if (data.title && data.type !== 'success') {
+        @if (data.title) {
           <strong class="toast-title">{{ data.title }}</strong>
         }
-        <span class="toast-message" [class.toast-message--success]="data.type === 'success'">{{ data.message }}</span>
+        <span class="toast-message" [class.toast-message--success]="data.type === 'success' && !data.title">{{ data.message }}</span>
       </div>
     </div>
     <button type="button" class="toast-close" aria-label="Close" (click)="snackBarRef.dismiss()">

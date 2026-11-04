@@ -176,4 +176,22 @@ describe('CartComponent', () => {
       '/reservations',
     ]);
   });
+  it('hides the cart panel while the submit confirmation is shown', () => {
+    component.submitOrderId.set('order-1');
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.cart')).toBeNull();
+    expect(root.querySelector('app-submit-order-modal')).not.toBeNull();
+  });
+
+  it('closes the cart together with the submit confirmation', () => {
+    spyOn(component.closeCartEvent, 'emit');
+    component.submitOrderId.set('order-1');
+
+    component.closeSubmitModal();
+
+    expect(component.submitOrderId()).toBeNull();
+    expect(component.closeCartEvent.emit).toHaveBeenCalled();
+  });
 });

@@ -3,7 +3,7 @@
 .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.28);
+    background: rgba(0, 0, 0, 0.45);
     display: grid;
     place-items: center;
     z-index: 2000;
@@ -11,10 +11,12 @@
 }
 
 .modal {
-    width: min(450px, calc(100vw - 32px));
-    background: color.$neutral-0;
-    border-radius: 16px;
-    padding: 30px 28px 30px;
+    // Figma: 576px card on neutral-100 with 40px padding.
+    box-sizing: border-box;
+    width: min(576px, calc(100vw - 32px));
+    background: color.$neutral-100;
+    border-radius: 24px;
+    padding: 40px;
     position: relative;
 
     max-height: calc(100vh - 48px);
@@ -23,8 +25,8 @@
 
 .modal-close {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 20px;
+    right: 20px;
 }
 
 @media (max-width: 540px) {

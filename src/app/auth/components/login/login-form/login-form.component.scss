@@ -6,34 +6,38 @@
 
 .title {
     font-size: 26px;
-    line-height: 28px;
+    line-height: 40px;
     font-weight: 500;
     color: color.$neutral-900;
     margin-bottom: 8px;
 }
 
 .banner-error {
-    padding: 12px 14px;
+    margin: 8px 0 16px;
+    padding: 16px;
     border-radius: 8px;
     background: color.$red-100;
+    color: color.$red-400;
     font-size: 14px;
-    line-height: 40px;
+    line-height: 24px;
 }
 
-.field { display: flex; flex-direction: column; gap: 6px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
 
 .label {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: 14px;
+    line-height: 24px;
     color: color.$neutral-900;
     font-weight: 500;
 }
 
 .input {
-    height: 40px;
+    box-sizing: border-box;
+    height: 44px;
     border-radius: 8px;
     border: 1px solid color.$neutral-200;
-    padding: 0 12px;
+    background: color.$neutral-0;
+    padding: 0 16px;
     font-size: 14px;
     color: color.$neutral-900;
     outline: none;
@@ -44,6 +48,12 @@
         outline: none;
         border-color: color.$orange-400;
     }
+}
+
+// Design: masked passwords use large, spaced dots.
+.input[type='password'] {
+    font-size: 20px;
+    letter-spacing: 2px;
 }
 
 .input-error { border-color: color.$red-400 !important; }
@@ -75,11 +85,12 @@
     cursor: pointer;
     padding: 0;
 
-    img { width: 18px; height: 18px; }
+    img { width: 24px; height: 24px; display: block; }
 }
 
 .forgot-link {
     align-self: flex-end;
+    margin-top: 4px;
     font-size: 14px;
     line-height: 16px;
     color: color.$blue-500;
@@ -95,7 +106,8 @@
 
 .bottom {
     display: flex;
-    gap: 6px;
+    align-items: baseline;
+    gap: 4px;
     font-size: 12px;
     line-height: 16px;
     color: color.$neutral-600;

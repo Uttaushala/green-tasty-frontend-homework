@@ -1,15 +1,21 @@
 @use 'app/shared/styles/abstracts/colors' as color;
 
 .subtitle {
-  margin: -16px 0 0;
-  font-size: 12px;
-  line-height: 16px;
+  margin: -24px 0 0;
+  font-size: 14px;
+  line-height: 24px;
   color: color.$neutral-600;
 }
 
+// Figma spacing: 32px between the blocks of this window.
 .row {
   display: flex;
   gap: 12px;
+  margin-top: 8px;
+}
+
+.field-duration {
+  margin-top: 8px;
 }
 
 .field {
@@ -40,8 +46,8 @@
 }
 
 .note {
-  margin: 0;
-  padding: 12px;
+  margin: 8px 0 0;
+  padding: 11px 12px;
   font-size: 14px;
   line-height: 24px;
   color: color.$neutral-900;
@@ -53,4 +59,5 @@
 .actions {
   display: flex;
   width: 100%;
+  margin-top: 8px;
 }

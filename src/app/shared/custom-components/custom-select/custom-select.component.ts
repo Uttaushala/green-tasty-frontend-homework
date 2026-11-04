@@ -9,6 +9,10 @@ import {
 } from '@angular/core';
 import { SelectOption } from '@app/models/shared/select-option.model';
 
+function getLabel(option: string | SelectOption): string {
+  return typeof option === 'string' ? option : (option.text || option.value || '');
+}
+
 @Component({
   selector: 'app-custom-select',
   standalone: true,
@@ -23,8 +27,13 @@ export class CustomSelectComponent {
   readonly error = input('');
   readonly trailingIconPath = input('');
 
+  // Options without a label (e.g. a location saved with no address) are skipped: they would render
+  // as blank rows and a null value used to break the whole list.
   readonly options =
-    input<readonly (string | SelectOption)[]>([]);
+    input<readonly (string | SelectOption)[], readonly (string | SelectOption | null | undefined)[]>([], {
+      transform: (options) =>
+        (options ?? []).filter((option): option is string | SelectOption => !!option && !!getLabel(option)),
+    });
 
   readonly selectedOption =
     model<string | SelectOption | undefined>(undefined);
@@ -52,9 +61,7 @@ export class CustomSelectComponent {
   }
 
   getOptionText(option: string | SelectOption): string {
-    return typeof option === 'string'
-      ? option
-      : option.text || option.value;
+    return getLabel(option);
   }
 
   getOptionValue(option: string | SelectOption): string {

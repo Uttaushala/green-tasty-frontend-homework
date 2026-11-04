@@ -1,19 +1,25 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { buildPreOrderQueryParams } from '@app/shared/helpers/pre-order-query-params';
+import { PricePipe } from '@app/shared/pipes/price.pipe';
+import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, Subject, catchError, exhaustMap, filter, forkJoin, merge, of, switchMap, timer } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, exhaustMap, filter, forkJoin, merge, of, switchMap, timer } from 'rxjs';
 import { ParticipantCardComponent } from '@app/components/group-orders/participant-card/participant-card.component';
 import { GroupReservationStatus } from '@app/models/group-orders/group-status.model';
+import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
 import { Participant } from '@app/models/group-orders/participant.model';
+import { Order } from '@app/models/orders/order.model';
 import { RemindGuestsResponse } from '@app/models/group-orders/remind-guests.model';
 import { GuestInvite } from '@app/models/reservations/guest-invite.model';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
+import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
 import { ModalComponent } from '@app/shared/custom-components/modal/modal.component';
 import { consolidatePreOrder } from '@app/shared/helpers/consolidate-pre-order';
 import { markGuestsSeen } from '@app/shared/helpers/seen-guests';
+import { withOwnerOrder } from '@app/shared/mappers/owner-order.mapper';
 
 /** Як часто підтягуємо свіжі кошики, поки група Open. */
 export const SYNC_INTERVAL_MS = 15_000;
@@ -31,7 +37,7 @@ const ALL_GUESTS = 'all';
 
 @Component({
   selector: 'app-group-order-page',
-  imports: [ParticipantCardComponent, ModalComponent, CurrencyPipe, DatePipe],
+  imports: [PricePipe, ParticipantCardComponent, ModalComponent, DatePipe],
   templateUrl: './group-order-page.component.html',
   styleUrl: './group-order-page.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -41,6 +47,7 @@ export class GroupOrderPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly groupOrdersService = inject(GroupOrdersService);
+  private readonly preOrdersService = inject(PreOrdersService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -49,6 +56,8 @@ export class GroupOrderPageComponent {
 
   readonly invite = signal<GuestInvite | null>(null);
   readonly participants = signal<Participant[]>([]);
+  /** The owner's own regular order, kept as-is so a quantity/remove edit can PUT it straight back. */
+  private readonly ownerOrder = signal<Order | null>(null);
   readonly ownerSessionId = signal('');
   readonly status = signal<GroupReservationStatus>('Open');
 
@@ -61,6 +70,10 @@ export class GroupOrderPageComponent {
   readonly submitting = signal(false);
   readonly guestToRemove = signal<Participant | null>(null);
   readonly removing = signal(false);
+  /** Dish id currently being quantity-changed or removed, so its row can disable itself. */
+  readonly mutatingItemId = signal<string | null>(null);
+  /** Participant id whose card owns the in-flight `mutatingItemId` edit. */
+  readonly mutatingParticipantId = signal<string | null>(null);
   /** id гостя (або ALL_GUESTS), якому зараз відправляється нагадування. */
   readonly remindingTarget = signal<string | null>(null);
 
@@ -92,7 +105,6 @@ export class GroupOrderPageComponent {
   );
   readonly canRemind = computed(() => !this.isSent() && !this.viewMode() && this.status() === 'Open');
   readonly allReminding = computed(() => this.remindingTarget() === ALL_GUESTS);
-  readonly hasAnyDishes = computed(() => this.participants().some((person) => person.items.length > 0));
   readonly canSubmit = computed(
     () => !this.isSent() && !this.viewMode() && !this.submitting() && this.consolidated().items.length > 0,
   );
@@ -129,14 +141,16 @@ export class GroupOrderPageComponent {
             sessions: this.groupOrdersService.getSessions$(invite.GroupReservationId),
             ownerSessionId: this.groupOrdersService.getOwnerSessionId$(this.reservationId),
             status: this.groupOrdersService.getStatus$(invite.GroupReservationId),
+            ownerOrder: this.groupOrdersService.getOwnerOrder$(this.reservationId),
           }),
         ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: ({ invite, sessions, ownerSessionId, status }) => {
+        next: ({ invite, sessions, ownerSessionId, status, ownerOrder }) => {
           this.invite.set(invite);
-          this.participants.set(sessions.participants);
+          this.participants.set(this.withOwnerDishes(sessions.participants, ownerOrder, status.status));
+          this.ownerOrder.set(ownerOrder);
           this.ownerSessionId.set(ownerSessionId);
           this.status.set(status.status);
           this.lastUpdated.set(new Date());
@@ -151,6 +165,100 @@ export class GroupOrderPageComponent {
   }
 
   /** Closes the window and returns to the reservations list underneath it. */
+  /** Figma "Edit my Pre-Order": the owner goes back to the menu in pre-order mode for this reservation. */
+  editMyPreOrder(): void {
+    const invite = this.invite();
+    if (!invite) {
+      return;
+    }
+    const queryParams = buildPreOrderQueryParams(
+      { id: this.reservationId, locationAddress: invite.LocationAddress, startTime: invite.StartTime, endTime: invite.EndTime },
+      `Table ${invite.TableNumber}`,
+    );
+    void this.router.navigate(['/menu'], { queryParams });
+  }
+
+  /** Inline +/- on a pre-order row: the owner's own card PUTs their order back; a guest's card
+   * goes through the owner-only group-session endpoint instead. */
+  updateItemQuantity(person: Participant, dishId: string, quantity: number): void {
+    if (quantity < 1) {
+      return;
+    }
+    if (person.id === this.ownerSessionId()) {
+      this.mutateOwnerOrder(dishId, (order) => ({
+        ...order,
+        orderItems: order.orderItems.map((item) => (item.dish.id === dishId ? { ...item, quantity } : item)),
+      }));
+    } else {
+      this.mutateGuestSession(person, dishId, () =>
+        this.groupOrdersService.setGuestDishQuantity$(this.groupId(), person.id, dishId, quantity),
+      );
+    }
+  }
+
+  /** Inline trash on a pre-order row: the owner's own card PUTs their order back without that dish;
+   * a guest's card goes through the owner-only group-session endpoint instead. */
+  removeItem(person: Participant, dishId: string): void {
+    if (person.id === this.ownerSessionId()) {
+      this.mutateOwnerOrder(dishId, (order) => ({
+        ...order,
+        orderItems: order.orderItems.filter((item) => item.dish.id !== dishId),
+      }));
+    } else {
+      this.mutateGuestSession(person, dishId, () => this.groupOrdersService.removeGuestDish$(this.groupId(), person.id, dishId));
+    }
+  }
+
+  private mutateOwnerOrder(dishId: string, updateFn: (order: Order) => Order): void {
+    const order = this.ownerOrder();
+    if (!order || this.mutatingParticipantId() !== null) {
+      return;
+    }
+    this.mutatingParticipantId.set(this.ownerSessionId());
+    this.mutatingItemId.set(dishId);
+
+    this.preOrdersService
+      .editPreOrderByReservationId(this.reservationId, updateFn(order))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.mutatingParticipantId.set(null);
+          this.mutatingItemId.set(null);
+          // Not refresh(): that's gated to status === 'Open', but editing stays allowed after Submitted too.
+          this.load();
+        },
+        // toast з текстом помилки вже показав tokenInterceptor
+        error: () => {
+          this.mutatingParticipantId.set(null);
+          this.mutatingItemId.set(null);
+        },
+      });
+  }
+
+  private mutateGuestSession(person: Participant, dishId: string, request: () => Observable<GroupSessionsResponse>): void {
+    if (this.mutatingParticipantId() !== null) {
+      return;
+    }
+    this.mutatingParticipantId.set(person.id);
+    this.mutatingItemId.set(dishId);
+
+    request()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        // список і суми оновлюються з відповіді сервера — через ті самі computed()
+        next: (response) => {
+          this.participants.set(response.participants);
+          this.mutatingParticipantId.set(null);
+          this.mutatingItemId.set(null);
+        },
+        // toast з текстом помилки вже показав tokenInterceptor
+        error: () => {
+          this.mutatingParticipantId.set(null);
+          this.mutatingItemId.set(null);
+        },
+      });
+  }
+
   close(): void {
     markGuestsSeen(
       this.reservationId,
@@ -307,14 +415,24 @@ export class GroupOrderPageComponent {
     return !this.loading() && this.loadError() === null && this.groupId() !== '' && this.status() === 'Open';
   }
 
+  /**
+   * Once the group is sent, the regular order also holds every submitted guest's dishes,
+   * so those are taken out and only the owner's own dishes stay in "My Pre-Order".
+   */
+  private withOwnerDishes(participants: Participant[], ownerOrder: Order | null, status: GroupReservationStatus): Participant[] {
+    return withOwnerOrder(participants, ownerOrder, status !== 'Open');
+  }
+
   private fetchLatest$() {
     const groupId = this.groupId();
     return forkJoin({
       sessions: this.groupOrdersService.getSessions$(groupId, { silent: true }),
       status: this.groupOrdersService.getStatus$(groupId, { silent: true }),
+      ownerOrder: this.groupOrdersService.getOwnerOrder$(this.reservationId),
     }).pipe(
-      switchMap(({ sessions, status }) => {
-        this.participants.set(sessions.participants);
+      switchMap(({ sessions, status, ownerOrder }) => {
+        this.participants.set(this.withOwnerDishes(sessions.participants, ownerOrder, status.status));
+        this.ownerOrder.set(ownerOrder);
         this.status.set(status.status);
         this.lastUpdated.set(new Date());
         this.syncFailed.set(false);

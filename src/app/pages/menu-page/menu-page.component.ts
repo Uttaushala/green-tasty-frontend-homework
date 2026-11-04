@@ -2,7 +2,6 @@ import {Component, OnInit, ChangeDetectionStrategy, inject} from '@angular/core'
 import { DishCardComponent } from '@app/shared/custom-components/dish-card/dish-card.component';
 import { DishesService } from '@app/services/dishes/dishes.service';
 import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
-import { MainCoverImageComponent } from '@app/shared/custom-components/main-cover-image/main-cover-image.component';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { DishSort } from '@app/models/enums/dish-sort.model';
 import { DishType } from '@app/models/enums/dish-type.model';
@@ -17,7 +16,6 @@ import {ToastService} from '@app/services/toast/toast.service';
   imports: [
     RouterModule,
     DishCardComponent,
-    MainCoverImageComponent,
     DishModalComponent
   ],
   templateUrl: './menu-page.component.html',
@@ -34,7 +32,8 @@ export class MenuPageComponent implements OnInit {
   preOrderReservationId?: string;
   preOrderReservationLabel?: string;
 
-  sortOptions = Object.values(DishSort);
+  // Дизайн показывает 4 пункта; «Least Popular First» остаётся валидным значением URL, но в списке не показывается.
+  sortOptions = [DishSort.PopularityDescending, DishSort.PriceAscending, DishSort.PriceDescending];
   sortLabels = DishSortingLabels;
 
   menuCategories = Object.values(DishType);

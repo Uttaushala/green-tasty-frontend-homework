@@ -34,6 +34,7 @@ import { WaitersService } from '@app/services/waiters/waiters.service';
 import { CustomButtonComponent } from '@app/shared/custom-components/custom-button/custom-button.component';
 import { CustomSelectComponent } from '@app/shared/custom-components/custom-select/custom-select.component';
 import { HeaderComponent } from '@app/shared/custom-components/header/header.component';
+import { ModalComponent } from '@app/shared/custom-components/modal/modal.component';
 import {
   formatTime,
   generateDateOptions,
@@ -72,6 +73,7 @@ const ANY_TABLE_OPTION: SelectOption = {
     TimeSlotsModalComponent,
     CustomButtonComponent,
     FeedbackQrModalComponent,
+    ModalComponent,
   ],
   templateUrl: './waiter-dashboard.component.html',
   styleUrl: './waiter-dashboard.component.scss',
@@ -190,8 +192,11 @@ export class WaiterDashboardComponent implements OnInit {
     [ReservationStatusCustomer.Reserved]: { class: 'reserved', label: 'Reserved' },
     [ReservationStatusCustomer.Cancelled]: { class: 'canceled', label: 'Cancelled' },
     [ReservationStatusCustomer.InProgress]: { class: 'in-progress', label: 'In Progress' },
-    [ReservationStatusCustomer.Finished]: { class: 'finished', label: 'Finished' },
+    [ReservationStatusCustomer.Finished]: { class: 'finished', label: 'Completed' },
   };
+
+  /** Reservation card's trash icon asks for confirmation first (Figma: "Cancel Reservation" dialog). */
+  readonly reservationToCancel = signal<string | null>(null);
 
   ngOnInit(): void {
     const token = this.authService.getToken();
@@ -305,7 +310,24 @@ export class WaiterDashboardComponent implements OnInit {
       });
   }
 
-  cancelReservation(id: string): void {
+  requestCancel(id: string): void {
+    this.reservationToCancel.set(id);
+  }
+
+  closeCancelDialog(): void {
+    this.reservationToCancel.set(null);
+  }
+
+  confirmCancel(): void {
+    const id = this.reservationToCancel();
+    this.reservationToCancel.set(null);
+
+    if (id) {
+      this.cancelReservation(id);
+    }
+  }
+
+  private cancelReservation(id: string): void {
     this.reservationService
       .cancelReservation$(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -353,11 +375,12 @@ export class WaiterDashboardComponent implements OnInit {
       .changeReservationStatus$(event.id, event.newStatus)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (updated) => {
+        // The API confirms with a message only, so the new status is applied from what we sent.
+        next: () => {
           this.reservations.update((items) =>
             items.map((reservation) =>
-              reservation.id === updated.id
-                ? { ...reservation, status: updated.status as ReservationStatusCustomer }
+              reservation.id === event.id
+                ? { ...reservation, status: event.newStatus as ReservationStatusCustomer }
                 : reservation
             )
           );

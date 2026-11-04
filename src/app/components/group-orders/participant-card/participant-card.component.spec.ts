@@ -33,11 +33,12 @@ describe('Практичне · картка учасника', () => {
   });
 
   describe('крок 3 · страви і Subtotal', () => {
-    it('показує назву страви, кількість і ціну × кількість через currency', () => {
+    it('показує назву страви, кількість і ціну × кількість у форматі Figma ($440)', () => {
       const text = render(OLENA).textContent ?? '';
       expect(text).toContain('Tom Yum');
       expect(text).toContain('2');
-      expect(text).toContain('$440.00');
+      expect(text).toContain('$440');
+      expect(text).not.toContain('$440.00');
     });
 
     it('показує Subtotal учасника', () => {
@@ -60,8 +61,29 @@ describe('Практичне · картка учасника', () => {
       expect(render(OLENA).textContent).toContain('Still choosing');
     });
 
-    it('«Submitted», якщо підтверджений', () => {
-      expect(render({ ...OLENA, isSubmitted: true }).textContent).toContain('Submitted');
+    it('підтверджений кошик без чипа — як у Figma', () => {
+      const host = render({ ...OLENA, isSubmitted: true });
+      expect(host.querySelector('.chip')).toBeNull();
+      expect(host.textContent).not.toContain('Still choosing');
+    });
+  });
+
+  describe('Edit my Pre-Order', () => {
+    it('показує посилання лише коли canEdit', () => {
+      expect(render(OWNER).textContent).not.toContain('Edit my Pre-Order');
+
+      const fixture = TestBed.createComponent(ParticipantCardComponent);
+      fixture.componentRef.setInput('participant', OWNER);
+      fixture.componentRef.setInput('canEdit', true);
+      fixture.detectChanges();
+      const emitted = jasmine.createSpy('editClick');
+      fixture.componentInstance.editClick.subscribe(emitted);
+
+      const button = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button')).find((b) =>
+        b.textContent?.includes('Edit my Pre-Order'),
+      );
+      button?.click();
+      expect(emitted).toHaveBeenCalled();
     });
   });
 });

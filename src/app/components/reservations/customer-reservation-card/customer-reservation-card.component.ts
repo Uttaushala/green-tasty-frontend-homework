@@ -71,16 +71,34 @@ export class CustomerReservationCardComponent {
     return `${count} ${count === 1 ? 'Guest' : 'Guests'}`;
   });
 
-  readonly showInviteRow = computed(() => this.isReserved() && this.isGroup());
-
-  readonly showProgress = computed(
-    () => this.isGroup() && this.reservation().status !== ReservationStatusCustomer.Cancelled,
+  /** Every seat already has a pre-order (owner + guests), so nobody else can join. */
+  readonly isFull = computed(
+    () => this.isGroup() && this.submittedCount() >= this.reservation().guestCount,
   );
+
+  // Figma: the invite row disappears once the group is full.
+  readonly showInviteRow = computed(() => this.isReserved() && this.isGroup() && !this.isFull());
+
+  // Figma: a full (or overfull) counter on an upcoming reservation is shown in red.
+  readonly highlightProgress = computed(
+    () => this.progressOver() || (this.isReserved() && this.isFull()),
+  );
+
+  // Figma: the counter stays on cancelled group reservations too.
+  readonly showProgress = computed(() => this.isGroup());
 
   /** Submitted pre-orders; without a group on the server only the owner's own order can exist. */
-  readonly submittedCount = computed(
-    () => this.progress()?.submitted ?? (this.reservation().hasSubmittedPreOrder === true ? 1 : 0),
-  );
+  readonly submittedCount = computed(() => {
+    const current = this.progress();
+    const ownerOrderSent = this.reservation().hasSubmittedPreOrder === true;
+
+    if (!current) {
+      return ownerOrderSent ? 1 : 0;
+    }
+
+    // The owner sends the order through the cart, which the owner's group session does not know about.
+    return current.submitted + (ownerOrderSent && !current.ownerSubmitted ? 1 : 0);
+  });
 
   readonly progressOver = computed(() => this.submittedCount() > this.reservation().guestCount);
 
@@ -134,7 +152,7 @@ export class CustomerReservationCardComponent {
   }
 
   private loadProgress(): void {
-    if (!this.isGroup() || this.reservation().status === ReservationStatusCustomer.Cancelled) {
+    if (!this.isGroup()) {
       return;
     }
 

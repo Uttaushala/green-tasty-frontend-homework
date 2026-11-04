@@ -13,7 +13,7 @@ describe('DishCardComponent', () => {
     imageUrl: 'assets/img/dish.png',
     price: 15,
     state: DishState.Available,
-    weight: '350',
+    weight: '350 g',
     dishType: 'MainCourse',
     description: 'Georgian cheese bread',
     calories: '500',
@@ -67,6 +67,19 @@ describe('DishCardComponent', () => {
     const badge = (fixture.nativeElement as HTMLElement).querySelector('.status-badge');
 
     expect(badge?.textContent?.trim()).toBe('Sold Out');
+  });
+
+  ['Out of stock', 'On stop', 'OutOfStock', 'out-of-stock'].forEach((state) => {
+    it(`treats the API state "${state}" as Sold Out`, () => {
+      fixture.componentRef.setInput('dish', { ...dish, state });
+      fixture.detectChanges();
+
+      expect(component.isUnavailable()).toBeTrue();
+    });
+  });
+
+  it('keeps an Available dish orderable', () => {
+    expect(component.isUnavailable()).toBeFalse();
   });
 
   it('does not open the full view for an unavailable dish', () => {

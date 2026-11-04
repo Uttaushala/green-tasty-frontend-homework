@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
 import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { normalizeDishes, RawDishResponse } from '@app/shared/mappers/dish-response.mapper';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
@@ -10,7 +11,9 @@ export class DishesService {
   private readonly http = inject(HttpClient);
 
   getPopularDishes(): Observable<DishListResponse[]> {
-    return this.http.get<DishListResponse[]>(`${this.baseUrl}/dishes/popular`);
+    return this.http
+      .get<RawDishResponse[]>(`${this.baseUrl}/dishes/popular`)
+      .pipe(map(normalizeDishes));
   }
 
   // /dishes
@@ -28,6 +31,8 @@ export class DishesService {
       params = params.set('name', name);
     }
 
-    return this.http.get<DishListResponse[]>(`${this.baseUrl}/dishes`, { params });
+    return this.http
+      .get<RawDishResponse[]>(`${this.baseUrl}/dishes`, { params })
+      .pipe(map(normalizeDishes));
   }
 }

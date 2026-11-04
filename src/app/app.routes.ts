@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { RegisterComponent } from './auth/components/register/register.component';
 import { LocationOverviewComponent } from './components/location-overview/location-overview.component';
 import { ProfileComponent } from './auth/components/profile/profile.component';
 import { MainLayoutComponent } from './shared/layouts/main-layout/main-layout.component';
@@ -14,13 +13,6 @@ import { ReportingDashboardComponent } from './pages/reporting-dashboard/reporti
 import { AdminGuard } from './auth/guards/admin.guard';
 
 export const routes: Routes = [
-  {
-    canActivate: [AuthGuard],
-    data: { authorized: false },
-    path: 'signup',
-    component: RegisterComponent,
-  },
-
   {
     path: 'locations/:id',
     component: LocationOverviewComponent,
@@ -79,6 +71,13 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         data: { authorized: false },
         path: 'login',
+        component: MainPageComponent,
+      },
+      {
+        // Create an Account opens as a window over the main page (Figma sign-up flow).
+        canActivate: [AuthGuard],
+        data: { authorized: false },
+        path: 'signup',
         component: MainPageComponent,
       },
       {

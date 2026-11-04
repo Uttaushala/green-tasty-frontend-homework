@@ -60,7 +60,7 @@
                 </button>
               </div>
 
-              <span class="price">{{ item.dish.price * item.quantity | currency }}</span>
+              <span class="price">{{ item.dish.price * item.quantity | price }}</span>
             </div>
           </div>
         </li>
@@ -71,7 +71,7 @@
   <footer class="footer" [class.footer--sticky]="!showReservation()">
     <p class="grand-total">
       <span class="grand-total-label">Grand Total</span>
-      <span class="grand-total-value">{{ totalPrice() | currency }}</span>
+      <span class="grand-total-value">{{ totalPrice() | price }}</span>
     </p>
 
     <button

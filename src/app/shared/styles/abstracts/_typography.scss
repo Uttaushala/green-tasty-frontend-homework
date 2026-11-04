@@ -45,6 +45,8 @@ $font-family-base: 'Poppins', sans-serif;
     letter-spacing: 0;
   }
 
+  // Form controls do not inherit the page font by default; the design uses Poppins everywhere.
+  button,
   input,
   select,
   textarea {

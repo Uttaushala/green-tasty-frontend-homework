@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
+import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
 import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
 import { GuestInvite } from '@app/models/reservations/guest-invite.model';
@@ -22,18 +23,20 @@ describe('Сторінка Owner Review · режим перегляду (<30 х
   function create(startOffsetMs: number) {
     const start = new Date(Date.now() + startOffsetMs).toISOString();
     const service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$', 'submit$', 'remind$', 'removeSession$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getOwnerOrder$', 'getStatus$', 'submit$', 'remind$', 'removeSession$',
     ]);
     service.getGroupInvite$.and.returnValue(
       of({ GroupReservationId: 'grp-1', LocationAddress: 'Addr', MaxGuestCount: 5, StartTime: start, EndTime: start } as GuestInvite),
     );
     service.getSessions$.and.returnValue(of(structuredClone(SESSIONS)));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
     service.getStatus$.and.returnValue(of({ currentParticipants: 2, maxCapacity: 5, status: 'Open' as const }));
     TestBed.configureTestingModule({
       imports: [GroupOrderPageComponent],
       providers: [
         { provide: GroupOrdersService, useValue: service },
+        { provide: PreOrdersService, useValue: jasmine.createSpyObj('PreOrdersService', ['editPreOrderByReservationId']) },
         { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success', 'error', 'info']) },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ reservationId: 'res-1' }) } } },
       ],

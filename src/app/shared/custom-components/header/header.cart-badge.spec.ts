@@ -71,4 +71,35 @@ describe('HeaderComponent cart badge and menu highlight', () => {
 
     expect(fixture.nativeElement.querySelector('.cart-badge')).toBeNull();
   });
+
+  it('hides the cart icon outside the menu while the cart is empty (Figma reservations header)', () => {
+    const fixture = createHeader();
+    httpMock.expectOne((req) => req.url.endsWith('/orders')).flush([]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('button[aria-label="Open cart"]')).toBeNull();
+  });
+
+  it('shows the cart icon on the menu even with an empty cart', async () => {
+    const fixture = createHeader();
+    httpMock.expectOne((req) => req.url.endsWith('/orders')).flush([]);
+    await TestBed.inject(Router).navigateByUrl('/menu');
+    httpMock.expectOne((req) => req.url.endsWith('/orders')).flush([]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('button[aria-label="Open cart"]')).not.toBeNull();
+  });
+
+  it('keeps "Main page" highlighted on the menu', async () => {
+    const fixture = createHeader();
+    httpMock.expectOne((req) => req.url.endsWith('/orders')).flush([]);
+    await TestBed.inject(Router).navigateByUrl('/menu');
+    httpMock.expectOne((req) => req.url.endsWith('/orders')).flush([]);
+    fixture.detectChanges();
+
+    const mainLink = [...fixture.nativeElement.querySelectorAll('a.nav-link')].find(
+      (link: HTMLElement) => link.textContent?.trim() === 'Main page',
+    ) as HTMLElement;
+    expect(mainLink.classList).toContain('active');
+  });
 });

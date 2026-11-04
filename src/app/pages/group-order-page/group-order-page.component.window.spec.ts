@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
+import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
 import { GuestInvite } from '@app/models/reservations/guest-invite.model';
 import { GroupOrderPageComponent } from './group-order-page.component';
@@ -20,10 +21,11 @@ describe('Сторінка Owner Review · вікно', () => {
 
   function create() {
     const service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getOwnerOrder$', 'getStatus$',
     ]);
     service.getGroupInvite$.and.returnValue(of(INVITE));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
     service.getSessions$.and.returnValue(of({
       participants: [
         { id: 'owner', type: 'Owner' as const, name: 'Yevhenii', isSubmitted: true, total: 0, items: [] },
@@ -36,6 +38,7 @@ describe('Сторінка Owner Review · вікно', () => {
       imports: [GroupOrderPageComponent],
       providers: [
         { provide: GroupOrdersService, useValue: service },
+        { provide: PreOrdersService, useValue: jasmine.createSpyObj('PreOrdersService', ['editPreOrderByReservationId']) },
         { provide: ToastService, useValue: jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error', 'info']) },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ reservationId: 'res-1' }) } } },
       ],

@@ -29,6 +29,10 @@ interface WaiterPreOrderNavigationData {
   createdByName: string;
   createdByRole: string;
   tableName: string;
+  locationAddress: string;
+  startTime: string;
+  endTime: string;
+  guestCount: number;
 }
 
 @Component({
@@ -137,6 +141,44 @@ export class CardReservationComponent {
     );
   });
 
+  // Подпись кнопки официанта по состоянию резервации (аннотации макета Waiter).
+  readonly waiterOrderLabel = computed(() => {
+    const reservation = this.r();
+    const hasItems = this.preOrderItemCount() > 0;
+
+    switch (reservation.status) {
+      case ReservationStatusCustomer.Reserved:
+        if (!hasItems) {
+          return 'Pre-order';
+        }
+        return reservation.preOrder?.status === 1 ? 'View Pre-order' : 'Submit Pre-order';
+      case ReservationStatusCustomer.InProgress:
+        return hasItems ? 'Edit Order' : 'Create Order';
+      case ReservationStatusCustomer.Finished:
+        return 'View Order';
+      default:
+        return 'Pre-order';
+    }
+  });
+
+  /** Figma: the "Reserved" status bar gets a dot when a new pre-order is waiting on the waiter. */
+  readonly needsAttention = computed(() => {
+    return (
+      this.role() === Roles.WAITER &&
+      this.r().status === ReservationStatusCustomer.Reserved &&
+      this.waiterOrderLabel() === 'Submit Pre-order'
+    );
+  });
+
+  /** Figma: the table control is only editable while the reservation can still change — plain text otherwise. */
+  readonly canEditTable = computed(() => {
+    const status = this.r().status;
+    return (
+      status === ReservationStatusCustomer.Reserved ||
+      status === ReservationStatusCustomer.InProgress
+    );
+  });
+
   readonly canOpenGroupOrder = computed(() => {
     return (
       this.role() === Roles.CUSTOMER &&
@@ -237,7 +279,11 @@ export class CardReservationComponent {
       reservationId: reservation.id,
       createdByName: this.creatorName(),
       createdByRole: this.creatorRole(),
-      tableName: reservation.tableName || 'Unknown table',
+      tableName: reservation.tableName || 'Unknown',
+      locationAddress: reservation.locationAddress,
+      startTime: new Date(reservation.startTime).toISOString(),
+      endTime: new Date(reservation.endTime).toISOString(),
+      guestCount: reservation.guestCount,
     };
 
     sessionStorage.setItem(

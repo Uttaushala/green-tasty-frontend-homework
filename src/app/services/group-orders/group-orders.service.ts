@@ -2,6 +2,7 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '@app/auth/skip-error-toast.context';
+import { Order } from '@app/models/orders/order.model';
 import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
 import { RemindGuestsRequest, RemindGuestsResponse } from '@app/models/group-orders/remind-guests.model';
 import { PreOrderProgress } from '@app/models/group-orders/pre-order-progress.model';
@@ -57,6 +58,7 @@ export class GroupOrdersService {
         switchMap((invite) => this.getSessions$(invite.GroupReservationId, { silent: true })),
         map((sessions) => ({
           submitted: sessions.participants.filter((person) => person.isSubmitted).length,
+          ownerSubmitted: sessions.participants.some((person) => person.type === 'Owner' && person.isSubmitted),
           guestsJoined: sessions.participants.filter((person) => person.type === 'Guest').length,
         })),
         catchError(() => of(null)),
@@ -90,6 +92,26 @@ export class GroupOrdersService {
     );
   }
 
+  /** Owner's +/- stepper on a guest's card: sets that dish to an absolute quantity. */
+  setGuestDishQuantity$(
+    groupReservationId: string,
+    guestSessionId: string,
+    dishId: string,
+    quantity: number,
+  ): Observable<GroupSessionsResponse> {
+    return this.http.put<GroupSessionsResponse>(
+      `${this.groupUrl(groupReservationId)}/sessions/${encodeURIComponent(guestSessionId)}/dishes/${encodeURIComponent(dishId)}`,
+      { quantity },
+    );
+  }
+
+  /** Owner's trash icon on a guest's card: removes that dish from the guest's cart entirely. */
+  removeGuestDish$(groupReservationId: string, guestSessionId: string, dishId: string): Observable<GroupSessionsResponse> {
+    return this.http.delete<GroupSessionsResponse>(
+      `${this.groupUrl(groupReservationId)}/sessions/${encodeURIComponent(guestSessionId)}/dishes/${encodeURIComponent(dishId)}`,
+    );
+  }
+
   /** Owner нагадує гостям, які ще не підтвердили кошик: одному (guestSessionId) або всім одразу. */
   remind$(groupReservationId: string, guestSessionId?: string): Observable<RemindGuestsResponse> {
     const body: RemindGuestsRequest = guestSessionId ? { guestSessionId } : {};
@@ -97,6 +119,15 @@ export class GroupOrdersService {
       `${this.baseUrl}/group-reservations/${encodeURIComponent(groupReservationId)}/reminders`,
       body,
     );
+  }
+
+  /** The owner's own pre-order (the reservation's regular order); null when there is none yet. */
+  getOwnerOrder$(reservationId: string): Observable<Order | null> {
+    return this.http
+      .get<Order>(`${this.baseUrl}/orders/${encodeURIComponent(reservationId)}`, {
+        context: this.context({ silent: true }),
+      })
+      .pipe(catchError(() => of(null)));
   }
 
   private groupUrl(groupReservationId: string): string {

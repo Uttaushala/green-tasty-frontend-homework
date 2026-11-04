@@ -1,135 +1,252 @@
 @use 'app/shared/styles/abstracts/colors' as color;
 
-.preorder-list {
+.page {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  //justify-content: center;
-  padding: 1rem 2.5rem;
-  gap: 1.5rem;
+  justify-content: center;
 
-  @media (max-width: 780px) {
-    justify-content: center;
-  }
+  min-height: 100dvh;
+  padding: 2rem 1rem;
+
+  background: color.$bg-yellow;
 }
 
-.pre-order-dish {
+.panel {
+  position: relative;
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 870px;
+  height: fit-content;
+  padding: 2rem;
+
+  background: color.$neutral-100;
+  border-radius: 24px;
+}
+
+.close-button {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 24px;
+  height: 24px;
+  padding: 0;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.state {
+  padding: 2rem 0;
+  color: color.$neutral-600;
+  text-align: center;
+}
+
+.header {
+  padding-right: 2.5rem;
+}
+
+.heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
 }
 
 .title {
-  font-size: 18px;
-  line-height: 2rem;
-  padding: 1rem 2.5rem;
-  color: color.$neutral-600;
-}
-
-.breadcrumb {
-  font-size: 14px;
-  line-height: 24px;
-  margin-left: 2.5rem;
-  color: color.$neutral-600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.breadcrumb-link {
-  color: color.$neutral-600;
-  text-decoration: none;
-  transition: color 0.2s ease;
-  cursor: pointer;
-}
-
-.breadcrumb-link:hover {
-  color: color.$neutral-900;
-  text-decoration: underline;
-}
-
-.breadcrumb-separator {
-  color: color.$neutral-600;
+  margin: 0;
   font-size: 1.5rem;
-}
-
-.breadcrumb-current {
   font-weight: 600;
   color: color.$neutral-900;
 }
 
-.preorder-actions {
-  // width: 16.75;
-  width: 90%;
-  height: 2.5rem;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  padding: 0 1rem;
-  gap: 1rem;
-  justify-content: center;
-}
+.badge {
+  display: inline-flex;
+  align-items: center;
 
-.btn-cancel,
-.btn-confirm {
-  width: 126px;
-}
+  padding: 4px 12px;
 
-.btn-cancel {
-  align-self: flex-start;
-  border: 1px solid color.$green-600;
-  border-radius: 0.5rem;
-  height: 2.5rem;
-  font-weight: 600;
-  line-height: 1.5rem;
-  font-size: 0.875rem;
-  color: color.$green-600;
-  text-align: center;
-  cursor: pointer;
-}
+  color: color.$orange-600;
+  background: color.$orange-100;
+  border-radius: 999px;
 
-::ng-deep .preorder-list app-dish-card [dish-footer] app-custom-button ::ng-deep button {
-  height: 2.5rem;
-}
+  font-size: 0.8125rem;
+  font-weight: 500;
 
-.pre-order-footer {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-::ng-deep app-custom-button.btn-cancel > .custom-button {
-  // height: 2.5rem;
-  background-color: color.$neutral-0;
-  color: color.$green-600;
-  border: 1px solid color.$green-600;
-  align-self: flex-start;
-  border-radius: 0.5rem;
-  height: 2.5rem;
-  font-weight: 600;
-  line-height: 1.5rem;
-  font-size: 0.875rem;
-  text-align: center;
-  cursor: pointer;
-
-  &:disabled {
-    color: color.$neutral-0;
-    cursor: not-allowed;
-    border: 1px solid color.$neutral-200;
+  &--confirmed {
+    color: color.$green-800;
+    background: color.$green-100;
   }
 }
 
-::ng-deep .preorder-list app-dish-card a .dish-info .dish-meta {
-  width: 90%;
-  background-color: aqua;
-}
-::ng-deep .preorder-list app-dish-card a {
-  //  padding-bottom: 0;
-  //  background-color: bisque;
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+
+  margin: 12px 0 0;
+  padding: 0;
+
+  list-style: none;
 }
 
-.pre-order-quantity {
-  position: relative;
-  font-size: 14px;
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: color.$neutral-600;
+  font-size: 0.875rem;
+
+  img {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin: 20px 0 0;
+  padding: 12px 16px;
+
+  color: color.$neutral-900;
+  background: color.$red-30;
+  border: 1px solid color.$red-100;
+  border-radius: 12px;
+
+  font-size: 0.875rem;
+
+  img {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.participant-card {
+  margin-top: 20px;
+  padding: 20px;
+
+  background: color.$neutral-0;
+  border-radius: 16px;
+}
+
+.participant-name {
+  margin: 0 0 12px;
+  font-size: 1.0625rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  color: color.$neutral-900;
+}
+
+.items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 12px 8px;
+  border-radius: 10px;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid color.$neutral-100;
+  }
+
+  &--rejected {
+    background: color.$red-30;
+  }
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 50%;
+
+  &.initial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: color.$neutral-600;
+    background: color.$neutral-100;
+
+    font-weight: 600;
+  }
+}
+
+.item-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  overflow: hidden;
+  color: color.$neutral-900;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qty {
+  margin: 2px 0 0;
+  color: color.$neutral-600;
+  font-size: 0.8125rem;
+}
+
+.price {
+  flex: 0 0 auto;
+  margin: 0 8px;
+  color: color.$neutral-900;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.item-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.reject-button,
+.confirm-button {
+  color: color.$neutral-600;
+  background: color.$neutral-0;
+  border: 1.4px solid color.$neutral-200;
+
+  &:disabled {
+    opacity: 1;
+  }
+}
+
+.reject-button--active {
+  color: color.$neutral-0;
+  background: color.$red-400;
+  border-color: color.$red-400;
+}
+
+.confirm-button--active {
+  color: color.$neutral-0;
+  background: color.$green-600;
+  border-color: color.$green-600;
+}
+
+.submit-button {
+  width: 100%;
+  margin-top: 24px;
 }

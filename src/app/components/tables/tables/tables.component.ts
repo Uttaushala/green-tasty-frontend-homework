@@ -85,7 +85,7 @@ export class TablesComponent implements OnInit {
       .subscribe((locations) => {
         this.locationOptions = [
           ALL_LOCATIONS_LABEL,
-          ...locations.map((location) => location.address),
+          ...locations.map((location) => location.address).filter((address): address is string => !!address),
         ];
         this.locations = locations;
 
@@ -205,6 +205,11 @@ export class TablesComponent implements OnInit {
   }
 
   onTimeSlotsClick(table: Table, timeRange: TimeRange): void {
+    // Figma: a guest who picks a slot is asked to sign in first.
+    if (!this.authenticationService.getToken()) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.selectedTimeRange = timeRange;
     this.selectedTable = table;
     this.draftGuests = this.lastAppliedFilter?.guests ?? 1;

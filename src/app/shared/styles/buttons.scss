@@ -42,7 +42,8 @@ $transition-timing: ease;
 
 .button--extra-large {
   min-height: 56px;
-  padding: 0 20px;
+  // Figma: 24px padding with an inside stroke.
+  padding: 0 23px;
 
   font-size: 16px;
   font-weight: 600;

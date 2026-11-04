@@ -7,6 +7,8 @@ import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
 export interface CreateGuestSessionRequest {
     groupReservationId: string;
     guestName: string;
+    /** The guest's own previous (already-submitted) session, so the backend does not count it twice against the guest limit. */
+    replacesGuestSessionId?: string;
 }
 
 export interface CreateGuestSessionResponse {

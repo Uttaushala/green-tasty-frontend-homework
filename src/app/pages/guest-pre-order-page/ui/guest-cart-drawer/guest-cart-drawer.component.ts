@@ -1,5 +1,5 @@
+import { PricePipe } from '@app/shared/pipes/price.pipe';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
 import { GuestCartItem } from '@app/pages/guest-pre-order-page/state/guest-preorder.store'; 
 
 @Component({
@@ -7,7 +7,7 @@ import { GuestCartItem } from '@app/pages/guest-pre-order-page/state/guest-preor
     selector: 'app-guest-cart-drawer',
     templateUrl: './guest-cart-drawer.component.html',
     styleUrl: './guest-cart-drawer.component.scss',
-    imports: [CurrencyPipe],
+    imports: [PricePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GuestCartDrawerComponent {

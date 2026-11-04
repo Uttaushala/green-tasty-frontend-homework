@@ -83,11 +83,14 @@ export class ReservationService {
     return this.http.get<Reservation[]>(url);
   }
 
+  /** `silent` keeps a missing feedback (404) from popping an error toast, e.g. on the reservations list. */
   getReservationFeedback(
-    reservationId: string
+    reservationId: string,
+    silent = false
   ): Observable<FeedbackReservationResponseItem | null> {
     return this.http.get<FeedbackReservationResponseItem>(
-      `${this.baseUrl}/reservations/${reservationId}/feedback`
+      `${this.baseUrl}/reservations/${reservationId}/feedback`,
+      { context: new HttpContext().set(SKIP_ERROR_TOAST, silent) }
     );
   }
 
@@ -95,9 +98,11 @@ export class ReservationService {
     return this.http.get<ReservationCustomer>(`${this.baseUrl}/reservations/${reservationId}`);
   }
 
-  changeReservationStatus$(id: string, newStatus: number): Observable<ReservationCustomer> {
+  // Backend only confirms with a message, not the updated reservation — callers must apply
+  // the status they sent themselves rather than reading it back from the response.
+  changeReservationStatus$(id: string, newStatus: number): Observable<{ message: string }> {
     const url = `${this.baseUrl}/reservations/${id}/status`;
     const body = { newStatus };
-    return this.http.patch<ReservationCustomer>(url, body);
+    return this.http.patch<{ message: string }>(url, body);
   }
 }

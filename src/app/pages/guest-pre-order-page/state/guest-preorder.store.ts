@@ -33,7 +33,7 @@ export class GuestPreorderStore {
 
     readonly invite = signal<GuestInvite | null>(null);
     readonly inviteLoading = signal(false);
-    readonly inviteError = signal<'expired' | 'retryable' | null>(null);
+    readonly inviteError = signal<'expired' | 'full' | 'retryable' | null>(null);
 
     readonly guestName = signal<string>('');
     readonly status = signal<GuestPreorderStatus>('active');
@@ -50,6 +50,9 @@ export class GuestPreorderStore {
     readonly menuError = signal<string | null>(null);
     readonly cartBusy = signal(false);
     readonly cartError = signal<string | null>(null);
+    /** The cart drawer is opened from the header cart icon (Figma), so its state lives here. */
+    readonly cartOpen = signal(false);
+    readonly cartCount = computed(() => this.cartItems().reduce((sum, item) => sum + item.qty, 0));
 
     readonly menuByCategory = signal<Record<string, GuestMenuDish[]>>({});
     readonly menuCategories = computed(() => Object.keys(this.menuByCategory()));
@@ -74,6 +77,14 @@ export class GuestPreorderStore {
         this.cartItems().reduce((sum, i) => sum + i.price * i.qty, 0)
     );
 
+    openCart(): void {
+        this.cartOpen.set(true);
+    }
+
+    closeCart(): void {
+        this.cartOpen.set(false);
+    }
+
     constructor() {
         effect(() => {
             const ctx = this.contextId();
@@ -94,7 +105,6 @@ export class GuestPreorderStore {
         if (this.contextId() === id) return;
 
         this.contextId.set(id);
-        void this.loadInviteByToken(id);
 
         const name = localStorage.getItem(this.key(id, 'guestName'));
         const cartRaw = localStorage.getItem(this.key(id, 'cart'));
@@ -109,6 +119,9 @@ export class GuestPreorderStore {
         if (this.guestSessionId() && this.guestSessionToken()) {
             void this.loadMenu();
         }
+
+        // After the saved session is restored: a guest who already joined must be recognised by the invite loader.
+        void this.loadInviteByToken(id);
 
         const dismissedReminder = localStorage.getItem(this.key(id, 'reminderDismissedAt'));
         if (dismissedReminder) this.dismissedReminderAt.set(dismissedReminder);
@@ -129,13 +142,29 @@ export class GuestPreorderStore {
         this.inviteLoading.set(true);
         this.inviteError.set(null);
 
+        const cached = this.readCachedInvite(token);
+        const alreadyJoined = !!this.guestSessionId() && !!this.guestSessionToken();
+
         try {
-            const inv = await firstValueFrom(this.guestInviteService.getInvite$(token));
+            const inv = await firstValueFrom(this.guestInviteService.getInvite$(token, alreadyJoined && !!cached));
             this.invite.set(inv);
+            this.cacheInvite(token, inv);
         } catch (error) {
-            this.invite.set(null);
             const status = error instanceof HttpErrorResponse ? error.status : null;
-            this.inviteError.set(status === 404 || status === 410 ? 'expired' : 'retryable');
+            const limitReached = error instanceof HttpErrorResponse && error.error?.errorCode === 'GuestLimitExceeded';
+
+            if (limitReached && alreadyJoined && cached) {
+                // The group is full because this guest is part of it: reopening the link must not lock them out.
+                this.invite.set(cached);
+                return;
+            }
+
+            this.invite.set(null);
+            if (limitReached) {
+                this.inviteError.set('full');
+            } else {
+                this.inviteError.set(status === 404 || status === 410 ? 'expired' : 'retryable');
+            }
         } finally {
             this.inviteLoading.set(false);
         }
@@ -355,6 +384,10 @@ export class GuestPreorderStore {
         const guestName = this.guestName().trim();
         if (!ctx || !invite?.GroupReservationId || !guestName || this.joinLoading()) return;
 
+        // The guest already has a seat (this is their own prior submitted session, not a new
+        // participant), so the backend must not count it against the reservation's guest limit.
+        const previousGuestSessionId = this.guestSessionId() ?? undefined;
+
         localStorage.removeItem(this.key(ctx, 'cart'));
         localStorage.removeItem(this.key(ctx, 'guestSessionId'));
         localStorage.removeItem(this.key(ctx, 'guestSessionToken'));
@@ -373,6 +406,7 @@ export class GuestPreorderStore {
             const session = await firstValueFrom(this.guestSessionsService.createSession({
                 groupReservationId: invite.GroupReservationId,
                 guestName,
+                replacesGuestSessionId: previousGuestSessionId,
             }));
             this.guestSessionId.set(session.SessionId);
             this.guestSessionToken.set(session.SessionToken);
@@ -424,9 +458,26 @@ export class GuestPreorderStore {
         // cleanup legacy
     }
 
+    private cacheInvite(token: string, invite: GuestInvite): void {
+        try {
+            localStorage.setItem(this.key(token, 'invite'), JSON.stringify(invite));
+        } catch {
+            // storage may be unavailable; the invite is simply not cached
+        }
+    }
+
+    private readCachedInvite(token: string): GuestInvite | null {
+        try {
+            const raw = localStorage.getItem(this.key(token, 'invite'));
+            return raw ? (JSON.parse(raw) as GuestInvite) : null;
+        } catch {
+            return null;
+        }
+    }
+
     private key(
         ctx: string,
-        part: 'guestName' | 'cart' | 'status' | 'guestSessionId' | 'guestSessionToken' | 'reminderDismissedAt'
+        part: 'guestName' | 'cart' | 'status' | 'guestSessionId' | 'guestSessionToken' | 'reminderDismissedAt' | 'invite'
     ) {
         return `guestPreorder:${ctx}:${part}`;
     }

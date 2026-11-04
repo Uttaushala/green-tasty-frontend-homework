@@ -45,12 +45,16 @@
           <img src="assets/svg/pre-order.svg" alt="" width="16" height="16" />
           Pre-orders:
           <span class="progress"
-            ><strong [class.over]="progressOver()">{{ submittedCount() }}</strong
+            ><strong [class.over]="highlightProgress()">{{ submittedCount() }}</strong
             >/{{ reservation().guestCount }}</span
           >
         </span>
       } @else {
-        <span class="item item--empty"></span>
+        <!-- Figma: without a pre-order counter the guests sit next to the date. -->
+        <span class="item">
+          <img src="assets/svg/people-green.svg" alt="" width="16" height="16" />
+          {{ guestsLabel() }}
+        </span>
       }
 
       <span class="item">
@@ -58,10 +62,12 @@
         {{ reservation().startTime | date: 'HH:mm' }} - {{ reservation().endTime | date: 'HH:mm' }}
       </span>
 
-      <span class="item">
-        <img src="assets/svg/people-green.svg" alt="" width="16" height="16" />
-        {{ guestsLabel() }}
-      </span>
+      @if (showProgress()) {
+        <span class="item">
+          <img src="assets/svg/people-green.svg" alt="" width="16" height="16" />
+          {{ guestsLabel() }}
+        </span>
+      }
     </div>
 
     <div class="actions">

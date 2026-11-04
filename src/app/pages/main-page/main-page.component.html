@@ -8,7 +8,7 @@
 
     <div class="hero-cta-group">
       <a routerLink="/tables" class="button button--primary button--extra-large">Book a table</a>
-      <a routerLink="/menu" class="button button--secondary button--extra-large">View Menu</a>
+      <a routerLink="/menu" class="button button--secondary button--extra-large">View menu</a>
     </div>
   </div>
 
@@ -24,16 +24,16 @@
 
     <div class="dish-cards">
       @for (dish of dishes; track dish) {
-        <a routerLink="/dish/{{ dish.id }}" routerLinkActive="router-link-active" class="dish-card">
+        <button type="button" class="dish-card" (click)="openDish(dish)">
           <img [src]="dish.imageUrl" alt="{{ dish.name }}" class="dish-image" />
           <div class="dish-info">
             <div class="dish-name">{{ dish.name }}</div>
             <div class="dish-meta">
-              <span class="dish-price">{{ dish.price | currency: '$' }}</span>
+              <span class="dish-price">{{ dish.price | price }}</span>
               <span class="dish-weight">{{ dish.weight }}</span>
             </div>
           </div>
-        </a>
+        </button>
       }
     </div>
   </div>
@@ -60,6 +60,14 @@
   ></app-feedback-window>
 }
 
+@if (selectedDish) {
+  <app-dish-modal [dish]="selectedDish" (closed)="closeDish()" />
+}
+
 @if (showLoginModal()) {
   <app-login-modal (closed)="closeLogin()" />
+}
+
+@if (showRegisterModal()) {
+  <app-register-modal (closed)="closeLogin()" (registered)="onRegistered()" />
 }

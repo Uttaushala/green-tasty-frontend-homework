@@ -1,10 +1,10 @@
-import { CurrencyPipe } from '@angular/common';
+import { PricePipe } from '@app/shared/pipes/price.pipe';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { Participant } from '@app/models/group-orders/participant.model';
 
 @Component({
   selector: 'app-participant-card',
-  imports: [CurrencyPipe],
+  imports: [PricePipe],
   templateUrl: './participant-card.component.html',
   styleUrl: './participant-card.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -21,8 +21,19 @@ export class ParticipantCardComponent {
   /** Нагадування цьому гостю щойно відправляється. */
   readonly reminding = input(false);
 
+  /** Owner's own card: "Edit my Pre-Order" link. */
+  readonly canEdit = input(false);
+  /** Figma: while the group is still collecting, a pre-order row gets a trash icon and a +/- stepper
+   * instead of plain "Qty: n" text. The owner can edit their own cart and any guest's cart. */
+  readonly canEditItems = input(false);
+  /** Dish id with a quantity/remove request in flight — its row's controls disable while it resolves. */
+  readonly mutatingDishId = input<string | null>(null);
+
+  readonly editClick = output<void>();
   readonly removeClick = output<Participant>();
   readonly remindClick = output<Participant>();
+  readonly itemQuantityChange = output<{ dishId: string; quantity: number }>();
+  readonly itemRemove = output<string>();
 
   readonly title = computed(() => {
     const person = this.participant();

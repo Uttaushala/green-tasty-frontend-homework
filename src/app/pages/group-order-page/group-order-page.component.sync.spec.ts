@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
+import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
 import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
 import { GuestInvite } from '@app/models/reservations/guest-invite.model';
@@ -35,6 +36,7 @@ describe('Рівень 3 · синхронізація', () => {
       imports: [GroupOrderPageComponent],
       providers: [
         { provide: GroupOrdersService, useValue: service },
+        { provide: PreOrdersService, useValue: jasmine.createSpyObj('PreOrdersService', ['editPreOrderByReservationId']) },
         { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success', 'error', 'info']) },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ reservationId: 'res-1' }) } } },
       ],
@@ -46,11 +48,12 @@ describe('Рівень 3 · синхронізація', () => {
 
   beforeEach(() => {
     service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$', 'submit$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getOwnerOrder$', 'getStatus$', 'submit$',
     ]);
     service.getGroupInvite$.and.returnValue(of(INVITE));
     service.getSessions$.and.returnValue(of(structuredClone(SESSIONS)));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
     service.getStatus$.and.returnValue(of({ currentParticipants: 2, maxCapacity: 5, status: 'Open' as const }));
   });
 

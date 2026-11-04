@@ -45,6 +45,7 @@
 }
 
 .remove {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   height: 32px;
@@ -71,12 +72,15 @@
 }
 
 .remind {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
+  height: 32px;
   gap: 6px;
-  padding: 0 0 2px;
+  padding: 4px 8px;
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 24px;
   font-weight: 500;
   color: color.$green-800;
   background: none;
@@ -131,6 +135,74 @@
       grid-row: 1 / span 2;
     }
   }
+}
+
+// Figma: while the order is still editable, a trash icon precedes the row and a +/- stepper
+// replaces the plain "Qty: n" text.
+.items--editable .item {
+  grid-template-columns: 24px 48px minmax(0, 1fr) auto 60px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 24px 48px minmax(0, 1fr) auto;
+
+    .stepper {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    .price {
+      grid-column: 4;
+      grid-row: 1 / span 2;
+    }
+  }
+}
+
+.item-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: color.$neutral-600;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    color: color.$red-400;
+  }
+
+  &:focus-visible {
+    outline: 2px solid color.$orange-400;
+    outline-offset: 2px;
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  // The global .icon-button--outlined is green (for +); decrementing stays neutral.
+  .stepper-decrement {
+    color: color.$neutral-700;
+    border-color: color.$neutral-200;
+  }
+}
+
+.stepper-value {
+  min-width: 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: color.$neutral-900;
 }
 
 .avatar {

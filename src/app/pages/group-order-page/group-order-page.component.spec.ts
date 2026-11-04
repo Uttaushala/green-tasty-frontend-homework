@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
+import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
 import { GroupSessionsResponse } from '@app/models/group-orders/group-sessions-response.model';
 import { GuestInvite } from '@app/models/reservations/guest-invite.model';
@@ -41,6 +42,7 @@ describe('Рівень 2 · сторінка Owner Review', () => {
       imports: [GroupOrderPageComponent],
       providers: [
         { provide: GroupOrdersService, useValue: service },
+        { provide: PreOrdersService, useValue: jasmine.createSpyObj('PreOrdersService', ['editPreOrderByReservationId']) },
         { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success', 'error', 'info']) },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ reservationId: 'res-1' }) } } },
       ],
@@ -52,11 +54,12 @@ describe('Рівень 2 · сторінка Owner Review', () => {
 
   beforeEach(() => {
     service = jasmine.createSpyObj<GroupOrdersService>('GroupOrdersService', [
-      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$', 'submit$',
+      'getGroupInvite$', 'getSessions$', 'getOwnerSessionId$', 'getStatus$', 'getOwnerOrder$', 'submit$',
     ]);
     service.getGroupInvite$.and.returnValue(of(INVITE));
     service.getSessions$.and.returnValue(of(structuredClone(SESSIONS)));
     service.getOwnerSessionId$.and.returnValue(of('owner'));
+    service.getOwnerOrder$.and.returnValue(of(null));
     service.getStatus$.and.returnValue(of({ currentParticipants: 3, maxCapacity: 5, status: 'Open' as const }));
   });
 
@@ -74,6 +77,27 @@ describe('Рівень 2 · сторінка Owner Review', () => {
       expect(element.textContent).toContain('Guest: Andrii');
     });
 
+    it('власний заказ Owner з корзини потрапляє в «My Pre-Order», коли його сесія порожня', () => {
+      const emptyOwner = structuredClone(SESSIONS);
+      emptyOwner.participants[0] = { ...emptyOwner.participants[0], items: [], total: 0, isSubmitted: false };
+      service.getSessions$.and.returnValue(of(emptyOwner));
+      service.getOwnerOrder$.and.returnValue(
+        of({
+          orderId: 'order-1',
+          reservationId: 'res-1',
+          reservationAddress: 'Rustaveli Avenue 48',
+          reservationTime: 'Nov 5, 2026',
+          status: 3,
+          orderItems: [{ dish: { ...tomYum, imageUrl: '', weight: '', state: 'Available' } as never, quantity: 2, state: 0 }],
+        }),
+      );
+
+      const { element } = create();
+
+      expect(service.getOwnerOrder$).toHaveBeenCalledWith('res-1');
+      expect(element.querySelector('app-participant-card')?.textContent).toContain('Tom Yum');
+    });
+
     it('бейдж статусу: «Collecting pre-orders»', () => {
       expect(create().element.textContent).toContain('Collecting pre-orders');
     });
@@ -82,12 +106,8 @@ describe('Рівень 2 · сторінка Owner Review', () => {
   describe('консолідоване замовлення — головна пастка', () => {
     it('Grand Total рахує лише підтверджені кошики: $540, а не $760 з API', () => {
       const text = create().element.textContent ?? '';
-      expect(text).toContain('$540.00');
-      expect(text).not.toContain('$760.00');
-    });
-
-    it('однакові страви — одним рядком: «Caesar Salad × 3»', () => {
-      expect(create().element.textContent).toContain('Caesar Salad × 3');
+      expect(text).toContain('$540');
+      expect(text).not.toContain('$760');
     });
 
     it('жовта плашка: «1 participant hasn’t submitted…»', () => {
@@ -96,13 +116,6 @@ describe('Рівень 2 · сторінка Owner Review', () => {
   });
 
   describe('стани екрана', () => {
-    it('порожньо: «Participants haven’t added any dishes yet»', () => {
-      const empty = structuredClone(SESSIONS);
-      empty.participants.forEach((p) => (p.items = []));
-      service.getSessions$.and.returnValue(of(empty));
-      expect(create().element.textContent).toMatch(/Participants haven.t added any dishes yet/);
-    });
-
     it('404: «Group reservation not found»', () => {
       service.getGroupInvite$.and.returnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
       expect(create().element.textContent).toContain('Group reservation not found');
@@ -144,7 +157,7 @@ describe('Рівень 2 · сторінка Owner Review', () => {
       expect(service.submit$).toHaveBeenCalledOnceWith('grp-1', 'res-1');
     });
 
-    it('після успіху: «Sent to Restaurant», кнопки Submit більше немає', () => {
+    it('після успіху: «Sent to Restaurant», кнопка Submit лишається, але неактивна (Figma)', () => {
       service.submit$.and.returnValue(of([{ dishId: 'dish1', quantity: 3 }]));
       const { fixture, element } = create();
       buttonByText(element, 'Submit Pre-Order')?.click();
@@ -153,7 +166,7 @@ describe('Рівень 2 · сторінка Owner Review', () => {
       fixture.detectChanges();
 
       expect(element.textContent).toContain('Sent to Restaurant');
-      expect(buttonByText(element, 'Submit Pre-Order')).toBeUndefined();
+      expect(buttonByText(element, 'Submit Pre-Order')?.disabled).toBeTrue();
     });
 
     it('помилка submit: екран не ламається, кнопку можна натиснути знову', () => {

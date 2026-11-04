@@ -243,38 +243,6 @@
   }
 }
 
-.consolidated {
-  margin-top: 4px;
-  padding: 16px;
-  background: color.$neutral-0;
-  border-radius: 12px;
-}
-
-.consolidated-title {
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 28px;
-}
-
-.consolidated-list {
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.consolidated-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 0;
-  overflow-wrap: anywhere;
-}
-
-.consolidated-empty {
-  margin-top: 8px;
-  color: color.$neutral-600;
-}
-
 .button--disabled-look,
 .footer .button:disabled {
   color: color.$neutral-0;
@@ -315,6 +283,8 @@
   gap: 16px;
 
   // Design: «Cancel» is an underlined text button, the destructive action is a red outline.
+  // The underline itself comes from the shared .button--tertiary text-decoration — a border-bottom
+  // here would draw a second line right under it.
   .button--tertiary {
     min-height: 0;
     padding: 4px 8px;
@@ -322,7 +292,6 @@
     color: color.$neutral-900;
     background: none;
     border: none;
-    border-bottom: 1px solid color.$neutral-900;
     border-radius: 0;
   }
 }
@@ -334,4 +303,9 @@
   border-width: 1.4px;
   color: color.$red-400;
   border-color: color.$red-400;
+}
+
+// Figma view mode (less than 30 min before the visit): the total is shown without the green accent.
+.grand-total-value--muted {
+  color: color.$neutral-900;
 }

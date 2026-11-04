@@ -15,12 +15,12 @@
   z-index: 100;
   display: flex;
   align-items: flex-start;
-  gap: 2rem;
+  gap: 1.9375rem;
   box-sizing: border-box;
   width: 52.375rem;
   max-width: 92vw;
   max-height: 92vh;
-  padding: 2.5rem 2.5rem 1.5rem;
+  padding: 2.5rem 2.5rem 1.5rem 2.4375rem;
   overflow: auto;
   background: color.$neutral-0;
   border-radius: 1.5rem;
@@ -36,7 +36,7 @@
 
 .dish-image {
   flex: none;
-  width: 18.375rem;
+  width: 18.5rem;
   height: 18.5rem;
   @include card.common-image(circle);
   box-shadow: 0 0 0.625rem 0.25rem rgba(218, 218, 218, 0.7);
@@ -80,7 +80,7 @@
 .dish-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
   font-size: 0.875rem;
   line-height: 1.5rem;
   color: color.$neutral-900;
@@ -100,6 +100,11 @@
   }
 }
 
+// Design: macros and vitamins are set tight, 16px apart.
+.dish-info__nutrients {
+  line-height: 1rem;
+}
+
 .price-weight {
   display: flex;
   align-items: center;
@@ -117,7 +122,7 @@
 .price-value {
   font-size: 1.5rem;
   font-weight: 500;
-  line-height: 2.5rem;
+  line-height: 1.5rem;
   color: color.$green-800;
 }
 
@@ -131,7 +136,7 @@
 .close-button {
   position: absolute;
   top: 1rem;
-  right: 1rem;
+  right: 1.1875rem;
   display: flex;
   padding: 0.5rem;
   background: none;

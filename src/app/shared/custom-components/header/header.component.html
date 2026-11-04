@@ -2,7 +2,19 @@
   <a class="logo-container" routerLink="/main">
     <img src="assets/svg/logo_vegeterian.svg" alt="vegetarian image" class="logo-image" />
   </a>
-  @if (!isSubmittedGuestPreorder) {
+  @if (isGuestPreorderRoute) {
+    <!-- Figma guest pre-order: only the cart in the header. -->
+    @if (!isSubmittedGuestPreorder) {
+      <div class="actions actions--guest">
+        <button type="button" class="icon-button icon-button--small guest-cart" aria-label="Open cart" (click)="openGuestCart()">
+          <img src="assets/svg/cart-empty.svg" alt="" class="action-icon" />
+          @if (guestCartCount() > 0) {
+            <span class="cart-badge">{{ guestCartCount() }}</span>
+          }
+        </button>
+      </div>
+    }
+  } @else {
   <button class="mobile-menu-icon" (click)="toggleMobileMenu()">
     <img src="../../../../assets/svg/menu.svg" alt="menu icon" />
   </button>
@@ -18,7 +30,7 @@
     }
 
     @if (user()?.role === Roles.CUSTOMER || !user()) {
-      <a routerLink="/main" class="nav-link" [routerLinkActive]="'active'" [class.active]="isMenuRoute()">Main page</a>
+      <a routerLink="/main" class="nav-link" routerLinkActive #mainLinkActive="routerLinkActive" [class.active]="mainLinkActive.isActive || isMenuRoute()">Main page</a>
       <a routerLink="/tables" class="nav-link" [routerLinkActive]="'active'">Book a Table</a>
     }
 
@@ -146,8 +158,8 @@
       <a class="button button--secondary button--large" routerLink="/login">Sign In</a>
     }
 
-    @if (user()?.role === Roles.CUSTOMER && !isGuestPreorderRoute) {
-      <button class="icon-button icon-button--small" type="button"  (click)="toggleCart()">
+    @if (user()?.role === Roles.CUSTOMER && !isGuestPreorderRoute && (cartCount() > 0 || isMenuPage())) {
+      <button class="icon-button icon-button--small" type="button" aria-label="Open cart" (click)="toggleCart()">
         <img
           [src]="'assets/svg/cart-empty.svg'"
           alt="cart icon"

@@ -19,18 +19,20 @@
     <p class="dish-description">{{ dish.description }}</p>
 
     <div class="dish-info">
-      <p><strong>Calories:</strong> {{ dish.calories }} kcal</p>
-      <p class="macros">
-        <span><strong>Protein:</strong> {{ dish.proteins }}</span>
-        <span><strong>Fats:</strong> {{ dish.fats }}g</span>
-        <span><strong>Carbs:</strong> {{ dish.carbohydrates }}</span>
-      </p>
-      <p><strong>Vitamins &amp; minerals:</strong> {{ dish.vitamins }}</p>
+      <p><strong>Calories</strong>: {{ calories }}</p>
+      <div class="dish-info__nutrients">
+        <p class="macros">
+          <span><strong>Protein</strong>: {{ dish.proteins }}</span>
+          <span><strong>Fats</strong>: {{ fats }}</span>
+          <span><strong>Carbs</strong>: {{ dish.carbohydrates }}</span>
+        </p>
+        <p><strong>Vitamins &amp; minerals</strong>: {{ dish.vitamins }}</p>
+      </div>
     </div>
 
     <div class="price-weight">
       <p class="price">
-        <span class="price-value">{{ dish.price | currency: 'USD' : 'symbol' : '1.0-2' }}</span>
+        <span class="price-value">{{ dish.price | price }}</span>
         <span class="weight">/{{ dish.weight }}</span>
       </p>
 

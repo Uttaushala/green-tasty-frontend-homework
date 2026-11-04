@@ -52,6 +52,18 @@ interface ReservationStatusView {
   label: string;
 }
 
+type ReservationFilter =
+  | 'all'
+  | 'upcoming'
+  | 'inProgress'
+  | 'completed'
+  | 'canceled';
+
+interface ReservationFilterTab {
+  id: ReservationFilter;
+  label: string;
+}
+
 @Component({
   selector: 'app-reservation-dashboard',
   standalone: true,
@@ -105,6 +117,63 @@ export class ReservationDashboardComponent implements OnInit {
   readonly showFeedbackModal = signal(false);
   readonly showInviteModal = signal(false);
   readonly reservationToCancel = signal<string | null>(null);
+
+  readonly filterTabs: ReservationFilterTab[] = [
+    { id: 'all', label: 'All' },
+    { id: 'upcoming', label: 'Upcoming' },
+    { id: 'inProgress', label: 'In Progress' },
+    { id: 'completed', label: 'Completed' },
+    { id: 'canceled', label: 'Canceled' },
+  ];
+
+  readonly selectedFilter = signal<ReservationFilter>('all');
+
+  readonly filterCounts = computed<Record<ReservationFilter, number>>(() => {
+    const list = this.reservations();
+
+    return {
+      all: list.length,
+      upcoming: list.filter(
+        (reservation) =>
+          reservation.status === ReservationStatusCustomer.Reserved,
+      ).length,
+      inProgress: list.filter(
+        (reservation) =>
+          reservation.status === ReservationStatusCustomer.InProgress,
+      ).length,
+      completed: list.filter(
+        (reservation) =>
+          reservation.status === ReservationStatusCustomer.Finished,
+      ).length,
+      canceled: list.filter(
+        (reservation) =>
+          reservation.status === ReservationStatusCustomer.Cancelled,
+      ).length,
+    };
+  });
+
+  readonly filteredReservations = computed<ReservationCustomer[]>(() => {
+    const filter = this.selectedFilter();
+    const list = this.reservations();
+
+    if (filter === 'all') {
+      return list;
+    }
+
+    const statusByFilter: Record<
+      Exclude<ReservationFilter, 'all'>,
+      ReservationStatusCustomer
+    > = {
+      upcoming: ReservationStatusCustomer.Reserved,
+      inProgress: ReservationStatusCustomer.InProgress,
+      completed: ReservationStatusCustomer.Finished,
+      canceled: ReservationStatusCustomer.Cancelled,
+    };
+
+    return list.filter(
+      (reservation) => reservation.status === statusByFilter[filter],
+    );
+  });
 
   readonly statusEnum: Record<number, ReservationStatusView> = {
     [ReservationStatusCustomer.Reserved]: {
@@ -182,6 +251,10 @@ export class ReservationDashboardComponent implements OnInit {
     this.customerId.set(user.id);
 
     this.loadReservations();
+  }
+
+  selectFilter(filter: ReservationFilter): void {
+    this.selectedFilter.set(filter);
   }
 
   requestCancel(id: string): void {
@@ -523,7 +596,7 @@ export class ReservationDashboardComponent implements OnInit {
           return forkJoin(
             reservations.map((reservation) =>
               this.reservationService
-                .getReservationFeedback(reservation.id)
+                .getReservationFeedback(reservation.id, true)
                 .pipe(
                   catchError((error: HttpErrorResponse) => {
                     if (error.status !== 404) {

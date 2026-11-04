@@ -85,7 +85,7 @@
       @if (lastAppliedFilter === null) {
         <div class="booking-image"></div>
       } @else {
-        <div class="table-card-list-wrapper">
+        <div class="table-card-list-wrapper" [class.table-card-list-wrapper--empty]="!isLoading && tables.length === 0">
           @if (isLoading && tables.length === 0) {
             <div class="results-summary">
               <span class="body-bold">Searching for tables…</span>
