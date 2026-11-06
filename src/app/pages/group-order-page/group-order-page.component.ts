@@ -16,6 +16,7 @@ import { GuestInvite } from '@app/models/reservations/guest-invite.model';
 import { GroupOrdersService } from '@app/services/group-orders/group-orders.service';
 import { PreOrdersService } from '@app/services/pre-orders/pre-orders.service';
 import { ToastService } from '@app/services/toast/toast.service';
+import { REMINDER_POLL_SECONDS } from '@app/shared/constants/reminder';
 import { ModalComponent } from '@app/shared/custom-components/modal/modal.component';
 import { consolidatePreOrder } from '@app/shared/helpers/consolidate-pre-order';
 import { markGuestsSeen } from '@app/shared/helpers/seen-guests';
@@ -345,7 +346,9 @@ export class GroupOrderPageComponent {
     const { reminded, skipped } = response;
     if (reminded.length > 0) {
       this.toastService.success(
-        reminded.length === 1 ? `Reminder sent to ${reminded[0].guestName}` : `Reminder sent to ${reminded.length} guests`,
+        reminded.length === 1
+          ? `Reminder sent to ${reminded[0].guestName}. It will appear on their page within ${REMINDER_POLL_SECONDS} seconds.`
+          : `Reminder sent to ${reminded.length} guests. It will appear on their pages within ${REMINDER_POLL_SECONDS} seconds.`,
       );
     }
 

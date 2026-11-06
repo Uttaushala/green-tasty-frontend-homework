@@ -100,7 +100,9 @@ describe('Сторінка Owner Review · нагадування', () => {
     fixture.detectChanges();
 
     expect(service.remind$).toHaveBeenCalledOnceWith('grp-1', 'olena');
-    expect(toast.success).toHaveBeenCalledWith('Reminder sent to Olena');
+    expect(toast.success).toHaveBeenCalledWith(
+      'Reminder sent to Olena. It will appear on their page within 15 seconds.',
+    );
   });
 
   it('«Remind all»: remind$(group) без гостя і toast з кількістю', () => {
@@ -117,7 +119,9 @@ describe('Сторінка Owner Review · нагадування', () => {
     buttonByText(element, 'Remind all')?.click();
 
     expect(service.remind$).toHaveBeenCalledOnceWith('grp-1', undefined);
-    expect(toast.success).toHaveBeenCalledWith('Reminder sent to 2 guests');
+    expect(toast.success).toHaveBeenCalledWith(
+      'Reminder sent to 2 guests. It will appear on their pages within 15 seconds.',
+    );
   });
 
   it('too_soon: показує, що нагадування вже було щойно', () => {
