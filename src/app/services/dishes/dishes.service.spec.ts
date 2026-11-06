@@ -30,6 +30,19 @@ describe('DishesService', () => {
     expect(fats).toBe('28 g');
   });
 
+  it('lists a dish once even though every location stores its own copy', () => {
+    let names: string[] = [];
+    service.getDishes().subscribe((dishes) => (names = dishes.map((dish) => dish.name)));
+
+    httpMock.expectOne((r) => r.url === `${baseUrl}/dishes`).flush([
+      { id: 'a-1', name: 'Spring Salad', price: 12 },
+      { id: 'b-1', name: 'Spring Salad', price: 12 },
+      { id: 'a-2', name: 'Avocado Egg Toast', price: 9 },
+    ]);
+
+    expect(names).toEqual(['Spring Salad', 'Avocado Egg Toast']);
+  });
+
   it('passes the filters as query params', () => {
     service.getDishes('Appetizer', 'PriceAscending').subscribe();
 
