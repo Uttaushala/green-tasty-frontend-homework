@@ -8,6 +8,7 @@ import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
 import { GuestMenuDish } from '@app/services/guest-sessions/guest-sessions.service';
 import { DishCardComponent } from '@app/shared/custom-components/dish-card/dish-card.component';
 import { ToastService } from '@app/services/toast/toast.service';
+import { REMINDER_POLL_SECONDS } from '@app/shared/constants/reminder';
 import { GuestPreorderStore } from './state/guest-preorder.store';
 
 import { GuestNameModalComponent } from './ui/guest-name-modal/guest-name-modal.component';
@@ -28,7 +29,7 @@ import { GuestPreorderSubmittedComponent } from './ui/guest-preorder-submitted/g
     ],
 })
 export class GuestPreOrderPageComponent {
-    private static readonly REMINDER_POLL_MS = 20_000;
+    private static readonly REMINDER_POLL_MS = REMINDER_POLL_SECONDS * 1000;
 
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
