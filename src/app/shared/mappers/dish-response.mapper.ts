@@ -12,6 +12,19 @@ export function normalizeDishes(raw: RawDishResponse[]): DishListResponse[] {
   return raw.map(normalizeDish);
 }
 
+/** The dishes API keeps one copy of every dish per location; the menu should list each dish once. */
+export function dedupeDishesByName(dishes: DishListResponse[]): DishListResponse[] {
+  const seen = new Set<string>();
+  return dishes.filter((dish) => {
+    const key = (dish.name ?? '').trim().toLowerCase();
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
 /** Appends a unit only when the API value does not carry one already ("540 kcal" vs "540"). */
 export function withUnit(value: string | null | undefined, unit: string): string {
   const text = (value ?? '').trim();

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '@app/shared/config/api-base-url.token';
 import { DishListResponse } from '@app/models/dishes/dish-list-response.model';
 import { map, Observable } from 'rxjs';
-import { normalizeDishes, RawDishResponse } from '@app/shared/mappers/dish-response.mapper';
+import { dedupeDishesByName, normalizeDishes, RawDishResponse } from '@app/shared/mappers/dish-response.mapper';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
@@ -33,6 +33,6 @@ export class DishesService {
 
     return this.http
       .get<RawDishResponse[]>(`${this.baseUrl}/dishes`, { params })
-      .pipe(map(normalizeDishes));
+      .pipe(map((raw) => dedupeDishesByName(normalizeDishes(raw))));
   }
 }
